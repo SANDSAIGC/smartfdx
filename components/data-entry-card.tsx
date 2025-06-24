@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
-import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -18,11 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { DatePicker } from "@/components/ui/date-picker";
 // import { toast } from "sonner";
 
 interface DataEntryCardProps {
@@ -102,29 +95,11 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
           {/* 日期选择 */}
           <div className="space-y-2">
             <Label>日期</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {!isMounted ? "选择日期" : date ? format(date, "yyyy年MM月dd日", { locale: zhCN }) : "选择日期"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" suppressHydrationWarning>
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                  locale={zhCN}
-                />
-              </PopoverContent>
-            </Popover>
+            <DatePicker
+              date={date}
+              onSelect={setDate}
+              placeholder="选择日期"
+            />
           </div>
 
           {/* 数据输入字段 */}

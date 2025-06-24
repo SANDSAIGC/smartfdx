@@ -3,22 +3,13 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -28,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface DemoRecord {
   id: string;
@@ -97,29 +89,12 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">选择查询日期</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full md:w-[280px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {!isMounted ? "选择查询日期" : date ? format(date, "yyyy年MM月dd日", { locale: zhCN }) : "选择查询日期"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" suppressHydrationWarning>
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                  locale={zhCN}
-                />
-              </PopoverContent>
-            </Popover>
+            <DatePicker
+              date={date}
+              onSelect={setDate}
+              placeholder="选择查询日期"
+              className="w-full md:w-[280px]"
+            />
           </div>
         </div>
       </CardHeader>
