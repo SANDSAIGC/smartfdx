@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,87 +18,92 @@ export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [isButtonPressed, setIsButtonPressed] = useState(false);
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
-    setError(null);
+  const phoneNumber = "1818389930";
+
+  const handleCopyPhone = async () => {
+    // 立即设置按钮按下状态，提供即时反馈
+    setIsButtonPressed(true);
+    setTimeout(() => setIsButtonPressed(false), 150);
 
     try {
-      // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
-      });
-      if (error) throw error;
-      setSuccess(true);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
+      // 尝试使用现代的 Clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(phoneNumber);
+      } else {
+        // 降级方案：使用传统的 document.execCommand
+        const textArea = document.createElement("textarea");
+        textArea.value = phoneNumber;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('复制失败:', err);
+      // 可以添加错误提示
     }
   };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      {success ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Check Your Email</CardTitle>
-            <CardDescription>Password reset instructions sent</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              If you registered using your email and password, you will receive
-              a password reset email.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-            <CardDescription>
-              Type in your email and we&apos;ll send you a link to reset your
-              password
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleForgotPassword}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send reset email"}
-                </Button>
-              </div>
-              <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
-                <Link
-                  href="/auth/login"
-                  className="underline underline-offset-4"
-                >
-                  Login
-                </Link>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">重置密码</CardTitle>
+          <CardDescription>
+            联络管理员提交重置申请
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="phone">电话号码</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phoneNumber}
+                readOnly
+                className="bg-muted cursor-default"
+              />
+            </div>
+
+            {copySuccess && (
+              <p className="text-sm text-green-600 text-center">
+                电话号码已复制到剪贴板
+              </p>
+            )}
+
+            <Button
+              type="button"
+              onClick={handleCopyPhone}
+              className={`w-full transition-all duration-150 ${
+                isButtonPressed ? 'scale-95' : 'scale-100'
+              }`}
+            >
+              {copySuccess ? "已复制" : "复制电话号码"}
+            </Button>
+          </div>
+
+          <div className="mt-4 text-center text-sm">
+            已有账号？{" "}
+            <Link
+              href="/auth/login"
+              className="underline underline-offset-4 hover:text-primary transition-colors duration-150 active:scale-95 transform"
+            >
+              立即登录
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

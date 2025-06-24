@@ -14,7 +14,7 @@ export default function Page() {
         <ModeToggle />
       </div>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-sm">
         {/* 中心内容 */}
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold mb-2">富鼎翔工业</h2>
