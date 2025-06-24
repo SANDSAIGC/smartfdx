@@ -1,8 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,6 +12,21 @@ interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+}
+
+// 本地日期格式化函数
+function formatDateValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDisplayDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}年${month}月${day}日`;
 }
 
 export function DatePicker({
@@ -42,14 +55,14 @@ export function DatePicker({
     }
   };
 
-  const formatDateValue = (date: Date | undefined) => {
+  const getDateValue = (date: Date | undefined) => {
     if (!date || !isMounted) return "";
-    return format(date, "yyyy-MM-dd");
+    return formatDateValue(date);
   };
 
-  const formatDisplayDate = (date: Date | undefined) => {
+  const getDisplayDate = (date: Date | undefined) => {
     if (!date || !isMounted) return placeholder;
-    return format(date, "yyyy年MM月dd日", { locale: zhCN });
+    return formatDisplayDate(date);
   };
 
   return (
@@ -65,13 +78,13 @@ export function DatePicker({
         type="button"
       >
         <CalendarIcon className="mr-2 h-4 w-4" />
-        {formatDisplayDate(date)}
+        {getDisplayDate(date)}
       </Button>
-      
+
       {/* 隐藏的原生日期输入 */}
       <Input
         type="date"
-        value={formatDateValue(date)}
+        value={getDateValue(date)}
         onChange={handleDateChange}
         className="absolute inset-0 opacity-0 cursor-pointer"
         disabled={disabled}

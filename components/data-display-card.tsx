@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
+import React, { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   Card,
@@ -30,6 +28,20 @@ interface DemoRecord {
   created_at: string;
 }
 
+// 简单的日期格式化函数
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// 格式化显示日期
+function formatDisplayDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  return `${date.getFullYear()}年${String(date.getMonth() + 1).padStart(2, '0')}月${String(date.getDate()).padStart(2, '0')}日`;
+}
+
 interface DataDisplayCardProps {
   refreshTrigger?: number;
 }
@@ -49,7 +61,7 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
     
     try {
       const supabase = createClient();
-      const dateString = format(selectedDate, 'yyyy-MM-dd');
+      const dateString = formatDate(selectedDate);
       
       const { data, error } = await supabase
         .from('demo')
@@ -134,7 +146,7 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
                     <TableCell>{record.生产数据}</TableCell>
                     <TableCell>{record.出厂数据}</TableCell>
                     <TableCell>
-                      {isMounted ? format(new Date(record.created_at), "HH:mm:ss", { locale: zhCN }) : "--:--:--"}
+                      {isMounted ? new Date(record.created_at).toLocaleTimeString('zh-CN', { hour12: false }) : "--:--:--"}
                     </TableCell>
                   </TableRow>
                 ))}

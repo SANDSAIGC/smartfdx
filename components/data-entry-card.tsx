@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,14 @@ import { DatePicker } from "@/components/ui/date-picker";
 
 interface DataEntryCardProps {
   onDataSubmitted?: () => void;
+}
+
+// 简单的日期格式化函数
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
@@ -55,7 +62,7 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
       const { error } = await supabase
         .from('demo')
         .insert({
-          '日期': format(date, 'yyyy-MM-dd'),
+          '日期': formatDate(date),
           '进厂数据': parseInt(incomingData),
           '生产数据': parseInt(productionData),
           '出厂数据': parseInt(outgoingData),
