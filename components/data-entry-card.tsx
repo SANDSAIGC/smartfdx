@@ -23,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 interface DataEntryCardProps {
   onDataSubmitted?: () => void;
@@ -45,12 +45,12 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
     e.preventDefault();
     
     if (!date) {
-      toast.error("请选择日期");
+      alert("请选择日期");
       return;
     }
 
     if (!incomingData || !productionData || !outgoingData) {
-      toast.error("请填写所有数据字段");
+      alert("请填写所有数据字段");
       return;
     }
 
@@ -70,7 +70,7 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
 
       if (error) throw error;
 
-      toast.success("数据提交成功");
+      alert("数据提交成功");
 
       // 清空表单
       setDate(undefined);
@@ -83,7 +83,7 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
 
     } catch (error) {
       console.error('提交数据失败:', error);
-      toast.error("数据提交失败，请重试");
+      alert("数据提交失败，请重试");
     } finally {
       setIsSubmitting(false);
     }
