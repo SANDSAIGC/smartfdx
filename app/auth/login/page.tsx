@@ -25,7 +25,7 @@ export default function Page() {
       </div>
 
       {/* 底部版权信息 */}
-      <div className="absolute bottom-6 left-0 right-0">
+      <div className="absolute bottom-10 left-0 right-0">
         <p className="text-xs text-muted-foreground text-center">
           FDX@2025 滇ICP备2025058380号
         </p>
