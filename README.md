@@ -1,4 +1,4 @@
-# FDX Smart Workshop 2.0
+# Fdx Smart Work 2.0
 
 <h1 align="center">富鼎翔工业智能车间系统</h1>
 
@@ -40,7 +40,7 @@
 ## 项目截图
 
 ### 登录页面
-- 左上角显示 "FDX SMART WORKSHOP 2.0" 标题
+- 左上角显示 "Fdx Smart Work 2.0" 标题
 - 右上角主题切换按钮
 - 中文界面，包含"记住账号"功能
 - 底部版权信息

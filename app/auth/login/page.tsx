@@ -6,7 +6,7 @@ export default function Page() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 relative">
       {/* 左上角标题 */}
       <div className="absolute top-6 left-6">
-        <h1 className="text-lg font-bold text-foreground">FDX SMART WORKSHOP 2.0</h1>
+        <h1 className="text-lg font-bold text-foreground">Fdx Smart Work 2.0</h1>
       </div>
 
       {/* 右上角主题切换按钮 */}
