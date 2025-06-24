@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
@@ -23,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-// import { toast } from "sonner";
+import { toast } from "sonner";
 
 interface DataEntryCardProps {
   onDataSubmitted?: () => void;
@@ -35,17 +35,22 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
   const [productionData, setProductionData] = useState("");
   const [outgoingData, setOutgoingData] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!date) {
-      alert("请选择日期");
+      toast.error("请选择日期");
       return;
     }
 
     if (!incomingData || !productionData || !outgoingData) {
-      alert("请填写所有数据字段");
+      toast.error("请填写所有数据字段");
       return;
     }
 
@@ -65,7 +70,7 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
 
       if (error) throw error;
 
-      alert("数据提交成功");
+      toast.success("数据提交成功");
 
       // 清空表单
       setDate(undefined);
@@ -78,7 +83,7 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
 
     } catch (error) {
       console.error('提交数据失败:', error);
-      alert("数据提交失败，请重试");
+      toast.error("数据提交失败，请重试");
     } finally {
       setIsSubmitting(false);
     }
@@ -107,10 +112,10 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "yyyy年MM月dd日", { locale: zhCN }) : "选择日期"}
+                  {!isMounted ? "选择日期" : date ? format(date, "yyyy年MM月dd日", { locale: zhCN }) : "选择日期"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0" suppressHydrationWarning>
                 <Calendar
                   mode="single"
                   selected={date}

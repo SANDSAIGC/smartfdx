@@ -46,6 +46,11 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
   const [date, setDate] = useState<Date>();
   const [records, setRecords] = useState<DemoRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchData = async (selectedDate: Date) => {
     setIsLoading(true);
@@ -102,10 +107,10 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "yyyy年MM月dd日", { locale: zhCN }) : "选择查询日期"}
+                  {!isMounted ? "选择查询日期" : date ? format(date, "yyyy年MM月dd日", { locale: zhCN }) : "选择查询日期"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0" suppressHydrationWarning>
                 <Calendar
                   mode="single"
                   selected={date}
@@ -154,7 +159,7 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
                     <TableCell>{record.生产数据}</TableCell>
                     <TableCell>{record.出厂数据}</TableCell>
                     <TableCell>
-                      {format(new Date(record.created_at), "HH:mm:ss", { locale: zhCN })}
+                      {isMounted ? format(new Date(record.created_at), "HH:mm:ss", { locale: zhCN }) : "--:--:--"}
                     </TableCell>
                   </TableRow>
                 ))}
