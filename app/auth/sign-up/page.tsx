@@ -16,7 +16,7 @@ export default function Page() {
 
       {/* 主要内容区域 */}
       <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm pt-16 sm:pt-12 md:pt-8">
+        <div className="w-full max-w-sm pt-16 sm:pt-12 md:pt-8 pb-10">
           {/* 中心内容 - 增加顶部间距避免与标题冲突 */}
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold mb-2">富鼎翔工业</h2>
@@ -25,13 +25,6 @@ export default function Page() {
 
           <SignUpForm />
         </div>
-      </div>
-
-      {/* 底部版权信息 - 确保在框体外 */}
-      <div className="absolute bottom-10 left-0 right-0 z-10">
-        <p className="text-xs text-muted-foreground text-center">
-          FDX@2025 滇ICP备2025058380号
-        </p>
       </div>
     </div>
   );
