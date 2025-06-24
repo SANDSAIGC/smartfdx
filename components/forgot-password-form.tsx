@@ -70,7 +70,7 @@ export function ForgotPasswordForm({
                 <p className="text-sm text-muted-foreground mb-3">管理员联系电话</p>
 
                 {/* 电话号码展示卡片 */}
-                <div className="relative bg-muted/30 border border-muted rounded-lg p-4 hover:bg-muted/50 transition-colors duration-200">
+                <div className="bg-muted/30 border border-muted rounded-lg p-4">
                   <div className="flex items-center justify-center gap-3">
                     <Phone className="h-5 w-5 text-muted-foreground" />
                     <span
@@ -79,14 +79,6 @@ export function ForgotPasswordForm({
                     >
                       {phoneNumber}
                     </span>
-                  </div>
-
-                  {/* 点击提示 */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200 bg-background/80 rounded-lg">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Copy className="h-4 w-4" />
-                      <span>点击复制</span>
-                    </div>
                   </div>
                 </div>
               </div>
