@@ -1,105 +1,173 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# FDX Smart Workshop 2.0
+
+<h1 align="center">富鼎翔工业智能车间系统</h1>
 
 <p align="center">
- The fastest way to build apps with Next.js and Supabase
+ 基于 Next.js 和 Supabase 构建的现代化工业管理平台
 </p>
 
 <p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
+  <a href="#features"><strong>功能特性</strong></a> ·
+  <a href="#tech-stack"><strong>技术栈</strong></a> ·
+  <a href="#installation"><strong>安装部署</strong></a> ·
+  <a href="#usage"><strong>使用说明</strong></a> ·
+  <a href="#contributing"><strong>贡献指南</strong></a>
 </p>
 <br/>
 
-## Features
+## 功能特性
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+- 🏭 **智能车间管理** - 现代化的工业车间管理系统
+- 🔐 **安全认证系统** - 基于 Supabase Auth 的用户认证
+- 🌓 **深色/浅色主题** - 支持主题切换，适应不同工作环境
+- 📱 **响应式设计** - 完美适配桌面端和移动端
+- 🎨 **现代化UI** - 使用 shadcn/ui 组件库构建
+- ⚡ **高性能** - 基于 Next.js 15 和 React 19
+- 🔧 **TypeScript** - 完整的类型安全支持
+- 🚀 **快速部署** - 支持 Vercel 一键部署
 
-## Demo
+## 技术栈
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+- **前端框架**: [Next.js 15](https://nextjs.org) (App Router)
+- **UI 组件**: [shadcn/ui](https://ui.shadcn.com/)
+- **样式**: [Tailwind CSS](https://tailwindcss.com)
+- **后端服务**: [Supabase](https://supabase.com)
+- **认证**: Supabase Auth (Cookie-based)
+- **数据库**: PostgreSQL (Supabase)
+- **开发语言**: TypeScript
+- **主题管理**: next-themes
 
-## Deploy to Vercel
+## 项目截图
 
-Vercel deployment will guide you through creating a Supabase account and project.
+### 登录页面
+- 左上角显示 "FDX SMART WORKSHOP 2.0" 标题
+- 右上角主题切换按钮
+- 中文界面，包含"记住账号"功能
+- 底部版权信息
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+### 主要功能
+- 用户认证（登录/注册/忘记密码）
+- 主题切换（深色/浅色模式）
+- 响应式设计
+- 受保护的页面路由
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+## 快速部署
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSANDSAIGC%2Fsmartfdx&project-name=smartfdx&repository-name=smartfdx)
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+## 安装部署
 
-## Clone and run locally
+### 前置要求
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+- Node.js 18+
+- npm/yarn/pnpm
+- Supabase 账号
 
-2. Create a Next.js app using the Supabase Starter template npx command
+### 本地开发
+
+1. **克隆项目**
 
    ```bash
-   npx create-next-app --example with-supabase with-supabase-app
+   git clone https://github.com/SANDSAIGC/smartfdx.git
+   cd smartfdx
    ```
+
+2. **安装依赖**
 
    ```bash
-   yarn create next-app --example with-supabase with-supabase-app
+   npm install
+   # 或
+   yarn install
+   # 或
+   pnpm install
    ```
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
+3. **配置环境变量**
+
+   复制 `.env.example` 为 `.env.local` 并配置以下变量：
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
-3. Use `cd` to change into the app's directory
+   在 [Supabase Dashboard](https://supabase.com/dashboard) 中获取这些值。
 
-   ```bash
-   cd with-supabase-app
-   ```
-
-4. Rename `.env.example` to `.env.local` and update the following:
-
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
-
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
-
-5. You can now run the Next.js local development server:
+4. **启动开发服务器**
 
    ```bash
    npm run dev
    ```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+   访问 [http://localhost:3000](http://localhost:3000) 查看应用。
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+### Supabase 配置
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+1. 在 [Supabase](https://database.new) 创建新项目
+2. 在项目设置中获取 URL 和 anon key
+3. 配置认证提供商（如需要）
+4. 设置数据库表结构（如需要）
 
-## Feedback and issues
+## 使用说明
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+### 主要页面
 
-## More Supabase examples
+- `/` - 主页
+- `/auth/login` - 登录页面
+- `/auth/sign-up` - 注册页面
+- `/auth/forgot-password` - 忘记密码页面
+- `/protected` - 受保护的页面（需要登录）
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+### 主要功能
+
+1. **用户认证**
+   - 邮箱密码登录
+   - 用户注册
+   - 忘记密码重置
+   - 记住账号功能
+
+2. **主题切换**
+   - 支持浅色/深色主题
+   - 系统主题自动检测
+   - 主题状态持久化
+
+3. **响应式设计**
+   - 移动端适配
+   - 桌面端优化
+
+## 项目结构
+
+```
+smartfdx/
+├── app/                    # Next.js App Router
+│   ├── auth/              # 认证相关页面
+│   ├── protected/         # 受保护页面
+│   └── globals.css        # 全局样式
+├── components/            # React 组件
+│   ├── ui/               # shadcn/ui 组件
+│   └── ...               # 自定义组件
+├── lib/                  # 工具库
+│   └── supabase/         # Supabase 配置
+└── ...
+```
+
+## 贡献指南
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 联系方式
+
+- 项目链接: [https://github.com/SANDSAIGC/smartfdx](https://github.com/SANDSAIGC/smartfdx)
+- 问题反馈: [Issues](https://github.com/SANDSAIGC/smartfdx/issues)
+
+---
+
+**FDX@2025 滇ICP备2025058380号**
