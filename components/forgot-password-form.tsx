@@ -9,8 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Phone, Copy } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -65,21 +64,40 @@ export function ForgotPasswordForm({
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="phone">电话号码</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phoneNumber}
-                readOnly
-                className="bg-muted cursor-default"
-              />
+            {/* 电话号码信息展示区域 */}
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-3">管理员联系电话</p>
+
+                {/* 电话号码展示卡片 */}
+                <div className="relative bg-muted/30 border border-muted rounded-lg p-4 hover:bg-muted/50 transition-colors duration-200">
+                  <div className="flex items-center justify-center gap-3">
+                    <Phone className="h-5 w-5 text-muted-foreground" />
+                    <span
+                      className="text-lg font-mono font-medium tracking-wider select-all cursor-text"
+                      onClick={handleCopyPhone}
+                    >
+                      {phoneNumber}
+                    </span>
+                  </div>
+
+                  {/* 点击提示 */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200 bg-background/80 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Copy className="h-4 w-4" />
+                      <span>点击复制</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {copySuccess && (
-              <p className="text-sm text-green-600 text-center">
-                电话号码已复制到剪贴板
-              </p>
+              <div className="text-center">
+                <p className="text-sm text-green-600 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md py-2 px-3">
+                  ✓ 电话号码已复制到剪贴板
+                </p>
+              </div>
             )}
 
             <Button
@@ -88,7 +106,9 @@ export function ForgotPasswordForm({
               className={`w-full transition-all duration-150 ${
                 isButtonPressed ? 'scale-95' : 'scale-100'
               }`}
+              variant="outline"
             >
+              <Copy className="h-4 w-4 mr-2" />
               {copySuccess ? "已复制" : "复制电话号码"}
             </Button>
           </div>
