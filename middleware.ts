@@ -14,8 +14,10 @@ export const config = {
      * - favicon.ico (favicon file)
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
      * - api routes (for testing purposes)
+     * - test-kong (Kong测试页面，无需认证)
+     * - demo (Demo页面，无需认证)
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api|test-kong|demo|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

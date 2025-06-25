@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient, createServiceClient } from "@/lib/supabase/client";
-import { diagnoseNetworkConnection } from "@/lib/network-diagnostics";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -78,99 +77,73 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
     setIsSubmitting(true);
 
     try {
-      const supabase = createClient();
+      console.log('=== 数据提交流程开始 ===');
+      console.log('1. 原始输入数据:');
+      console.log('   选择的日期对象:', date);
+      console.log('   日期的ISO字符串:', date.toISOString());
+      console.log('   日期的本地字符串:', date.toLocaleDateString());
+      console.log('   进厂数据输入:', incomingData, '(类型:', typeof incomingData, ')');
+      console.log('   生产数据输入:', productionData, '(类型:', typeof productionData, ')');
+      console.log('   出厂数据输入:', outgoingData, '(类型:', typeof outgoingData, ')');
 
-      // 验证Supabase配置
-      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-      console.log('Supabase ANON KEY长度:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length);
-      console.log('Supabase客户端已创建');
+      console.log('2. 数据转换:');
+      const formattedDate = formatDate(date);
+      console.log('   格式化后的日期:', formattedDate);
+      console.log('   转换后的数字:', { incomingNum, productionNum, outgoingNum });
 
-      // 准备数据（移到前面，供备用方案使用）
+      // 准备最终提交的数据
       const dataToInsert = {
-        '日期': formatDate(date),
+        '日期': formattedDate,
         '进厂数据': incomingNum,
         '生产数据': productionNum,
         '出厂数据': outgoingNum,
       };
 
-      // 运行完整的网络诊断
-      console.log('开始网络诊断...');
-      const diagnostics = await diagnoseNetworkConnection();
+      console.log('3. 最终提交数据:', dataToInsert);
+      console.log('   数据类型检查:');
+      console.log('   - 日期类型:', typeof dataToInsert['日期'], '值:', dataToInsert['日期']);
+      console.log('   - 进厂数据类型:', typeof dataToInsert['进厂数据'], '值:', dataToInsert['进厂数据']);
+      console.log('   - 生产数据类型:', typeof dataToInsert['生产数据'], '值:', dataToInsert['生产数据']);
+      console.log('   - 出厂数据类型:', typeof dataToInsert['出厂数据'], '值:', dataToInsert['出厂数据']);
 
-      if (!diagnostics.authentication) {
-        console.log('anon key认证失败，尝试使用service key...');
+      // 使用API路由提交数据
+      console.log('4. 开始API路由提交...');
 
-        // 备用方案：使用service key
-        try {
-          const serviceClient = createServiceClient();
-          const testResult = await serviceClient
-            .from('demo')
-            .select('count')
-            .limit(1);
+      try {
+        console.log('5. 发送API请求...');
+        const response = await fetch('/api/submit-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dataToInsert)
+        });
 
-          if (testResult.error) {
-            throw new Error(`Service key也失败: ${testResult.error.message}`);
-          }
+        console.log('6. API响应状态:', response.status, response.statusText);
 
-          console.log('Service key测试成功，使用service key提交数据');
-          // 使用service client继续
-          const supabase = serviceClient;
+        const result = await response.json();
+        console.log('7. API响应数据:', result);
 
-          const { data, error } = await supabase
-            .from('demo')
-            .insert(dataToInsert)
-            .select();
-
-          if (error) {
-            throw new Error(`Service key提交失败: ${error.message}`);
-          }
-
-          console.log('使用Service key数据提交成功:', data);
-          alert("数据提交成功（使用备用认证）");
-
-          // 清空表单
-          setDate(undefined);
-          setIncomingData("");
-          setProductionData("");
-          setOutgoingData("");
-
-          onDataSubmitted?.();
-          return; // 成功退出
-
-        } catch (serviceError) {
-          console.error('Service key也失败:', serviceError);
-          throw new Error('所有认证方式都失败，请检查控制台详细信息');
-        }
-      }
-
-      console.log('网络诊断通过，继续数据提交...');
-
-
-      console.log('准备提交的数据:', dataToInsert);
-
-      const { data, error } = await supabase
-        .from('demo')
-        .insert(dataToInsert)
-        .select();
-
-      if (error) {
-        console.error('Supabase错误详情:', error);
-
-        // 处理特定的认证错误
-        if (error.message.includes('Invalid authentication credentials')) {
-          throw new Error('认证失败：请检查API密钥配置');
-        }
-        if (error.message.includes('JWT')) {
-          throw new Error('认证令牌错误：请重新配置认证信息');
-        }
-        if (error.message.includes('permission')) {
-          throw new Error('权限不足：无法写入数据库');
-        }
-        if (error.message.includes('RLS')) {
-          throw new Error('数据库安全策略错误：请检查RLS配置');
+        if (!result.success) {
+          console.error('API提交失败详情:', result);
+          throw new Error(`API提交失败: ${result.error || result.details || '未知错误'}`);
         }
 
-        throw new Error(`数据库错误: ${error.message}`);
+        console.log('8. ✅ API路由提交成功:', result);
+        alert("数据提交成功！");
+
+        // 清空表单
+        setDate(undefined);
+        setIncomingData("");
+        setProductionData("");
+        setOutgoingData("");
+
+        onDataSubmitted?.();
+        return; // 成功退出
+
+      } catch (apiError) {
+        console.error('9. ❌ API路由提交失败:', apiError);
+        throw new Error(`数据提交失败: ${apiError instanceof Error ? apiError.message : '未知错误'}`);
       }
 
       console.log('数据提交成功:', data);

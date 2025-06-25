@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -58,22 +59,57 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
 
   const fetchData = async (selectedDate: Date) => {
     setIsLoading(true);
-    
-    try {
-      const supabase = createClient();
-      const dateString = formatDate(selectedDate);
-      
-      const { data, error } = await supabase
-        .from('demo')
-        .select('*')
-        .eq('日期', dateString)
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      setRecords(data || []);
+    try {
+      console.log('=== 开始获取数据 ===');
+      const dateString = formatDate(selectedDate);
+      console.log('查询日期:', dateString);
+
+      // 使用API路由获取数据
+      const response = await fetch(`/api/get-data?date=${encodeURIComponent(dateString)}&limit=50`);
+      console.log('API响应状态:', response.status, response.statusText);
+
+      const result = await response.json();
+      console.log('API响应数据:', result);
+
+      if (!result.success) {
+        throw new Error(`数据获取失败: ${result.error || '未知错误'}`);
+      }
+
+      console.log('获取到数据条数:', result.count);
+      setRecords(result.data || []);
+
     } catch (error) {
       console.error('获取数据失败:', error);
+      setRecords([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 获取所有数据
+  const fetchAllData = async () => {
+    setIsLoading(true);
+
+    try {
+      console.log('=== 开始获取所有数据 ===');
+
+      // 使用API路由获取所有数据（不指定日期）
+      const response = await fetch('/api/get-data?limit=100');
+      console.log('API响应状态:', response.status, response.statusText);
+
+      const result = await response.json();
+      console.log('API响应数据:', result);
+
+      if (!result.success) {
+        throw new Error(`数据获取失败: ${result.error || '未知错误'}`);
+      }
+
+      console.log('获取到所有数据条数:', result.count);
+      setRecords(result.data || []);
+
+    } catch (error) {
+      console.error('获取所有数据失败:', error);
       setRecords([]);
     } finally {
       setIsLoading(false);
@@ -94,6 +130,11 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
     }
   }, [refreshTrigger, date]);
 
+  // 初始加载所有数据
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
@@ -101,12 +142,21 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">选择查询日期</label>
-            <DatePicker
-              date={date}
-              onSelect={setDate}
-              placeholder="选择查询日期"
-              className="w-full md:w-[280px]"
-            />
+            <div className="flex gap-2">
+              <DatePicker
+                date={date}
+                onSelect={setDate}
+                placeholder="选择查询日期"
+                className="w-full md:w-[280px]"
+              />
+              <Button
+                onClick={fetchAllData}
+                variant="outline"
+                disabled={isLoading}
+              >
+                {isLoading ? '加载中...' : '显示所有数据'}
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>

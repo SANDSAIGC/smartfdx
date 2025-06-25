@@ -6,6 +6,8 @@ import { DataDisplayCard } from "@/components/data-display-card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { diagnoseNetworkConnection } from "@/lib/network-diagnostics";
+import { testDirectAPI, testDifferentURLs } from "@/lib/direct-api-test";
+import { createProxyClient } from "@/lib/supabase-proxy-client";
 
 export function DemoPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -36,6 +38,43 @@ export function DemoPage() {
     }
   };
 
+  // 直接API测试功能
+  const handleDirectAPITest = async () => {
+    console.log('=== 直接API测试开始 ===');
+    try {
+      const result = await testDirectAPI();
+      alert(`直接API测试完成！\n成功: ${result.success ? '✅ 是' : '❌ 否'}\n方法: ${result.method || '无'}\n请查看控制台详细信息`);
+    } catch (error) {
+      console.error('直接API测试异常:', error);
+      alert('直接API测试异常，请查看控制台详细信息');
+    }
+  };
+
+  // URL测试功能
+  const handleURLTest = async () => {
+    console.log('=== URL测试开始 ===');
+    try {
+      const result = await testDifferentURLs();
+      alert(`URL测试完成！\n成功: ${result.success ? '✅ 是' : '❌ 否'}\n工作URL: ${result.workingUrl || '无'}\n请查看控制台详细信息`);
+    } catch (error) {
+      console.error('URL测试异常:', error);
+      alert('URL测试异常，请查看控制台详细信息');
+    }
+  };
+
+  // 代理测试功能
+  const handleProxyTest = async () => {
+    console.log('=== 代理测试开始 ===');
+    try {
+      const proxyClient = createProxyClient();
+      const result = await proxyClient.testConnection();
+      alert(`代理测试完成！\n成功: ${result.success ? '✅ 是' : '❌ 否'}\n${result.success ? '数据: ' + JSON.stringify(result.data) : '错误: ' + result.error}\n请查看控制台详细信息`);
+    } catch (error) {
+      console.error('代理测试异常:', error);
+      alert('代理测试异常，请查看控制台详细信息');
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       {/* 页面头部，包含标题和主题切换按钮 */}
@@ -52,14 +91,28 @@ export function DemoPage() {
             生产数据录入与查询展示系统
           </p>
 
-          {/* 网络测试按钮 */}
-          <div className="mt-4">
+          {/* 测试按钮组 */}
+          <div className="mt-4 space-x-2">
             <Button
               onClick={handleNetworkTest}
               variant="outline"
               size="sm"
             >
               🔍 网络连接测试
+            </Button>
+            <Button
+              onClick={handleDirectAPITest}
+              variant="outline"
+              size="sm"
+            >
+              🎯 直接API测试
+            </Button>
+            <Button
+              onClick={handleURLTest}
+              variant="outline"
+              size="sm"
+            >
+              🌐 URL测试
             </Button>
           </div>
         </div>
