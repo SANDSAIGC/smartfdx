@@ -61,14 +61,18 @@ export async function diagnoseNetworkConnection() {
       method: 'GET',
       headers: {
         'apikey': anonKey,
+        'Authorization': `Bearer ${anonKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     });
     results.apiEndpoint = apiResponse.ok;
     console.log('API端点结果:', apiResponse.status, apiResponse.statusText);
-    
+
     if (!apiResponse.ok) {
       const errorText = await apiResponse.text();
       results.errors.push(`API端点失败: ${apiResponse.status} ${errorText}`);
+      console.log('API端点详细错误:', errorText);
     }
   } catch (error) {
     results.errors.push(`API端点异常: ${error}`);
@@ -78,20 +82,23 @@ export async function diagnoseNetworkConnection() {
   try {
     // 测试4: 完整认证
     console.log('测试4: 完整认证...');
-    const authResponse = await fetch(supabaseUrl + '/rest/v1/demo?select=count', {
+    const authResponse = await fetch(supabaseUrl + '/rest/v1/demo?select=count(*)', {
       method: 'GET',
       headers: {
         'apikey': anonKey,
         'Authorization': `Bearer ${anonKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Prefer': 'count=exact'
       }
     });
     results.authentication = authResponse.ok;
     console.log('认证测试结果:', authResponse.status, authResponse.statusText);
-    
+
     if (!authResponse.ok) {
       const errorText = await authResponse.text();
       results.errors.push(`认证失败: ${authResponse.status} ${errorText}`);
+      console.log('认证详细错误:', errorText);
     } else {
       const data = await authResponse.text();
       console.log('认证成功，返回数据:', data);

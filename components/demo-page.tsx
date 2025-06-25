@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { DataEntryCard } from "@/components/data-entry-card";
 import { DataDisplayCard } from "@/components/data-display-card";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { diagnoseNetworkConnection } from "@/lib/network-diagnostics";
 
 export function DemoPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -22,6 +24,18 @@ export function DemoPage() {
     setRefreshTrigger(prev => prev + 1);
   };
 
+  // 独立的网络测试功能
+  const handleNetworkTest = async () => {
+    console.log('=== 手动网络测试开始 ===');
+    try {
+      const result = await diagnoseNetworkConnection();
+      alert(`网络测试完成！\n认证测试: ${result.authentication ? '✅ 成功' : '❌ 失败'}\n请查看控制台详细信息`);
+    } catch (error) {
+      console.error('网络测试异常:', error);
+      alert('网络测试异常，请查看控制台详细信息');
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       {/* 页面头部，包含标题和主题切换按钮 */}
@@ -37,6 +51,17 @@ export function DemoPage() {
           <p className="text-muted-foreground">
             生产数据录入与查询展示系统
           </p>
+
+          {/* 网络测试按钮 */}
+          <div className="mt-4">
+            <Button
+              onClick={handleNetworkTest}
+              variant="outline"
+              size="sm"
+            >
+              🔍 网络连接测试
+            </Button>
+          </div>
         </div>
       </div>
 

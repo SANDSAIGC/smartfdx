@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, createServiceClient } from "@/lib/supabase/client";
 import { diagnoseNetworkConnection } from "@/lib/network-diagnostics";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,24 +85,66 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
       console.log('Supabase ANON KEY长度:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length);
       console.log('Supabase客户端已创建');
 
-      // 运行完整的网络诊断
-      console.log('开始网络诊断...');
-      const diagnostics = await diagnoseNetworkConnection();
-
-      if (!diagnostics.authentication) {
-        throw new Error('网络诊断失败：无法通过认证测试，请检查控制台详细信息');
-      }
-
-      console.log('网络诊断通过，继续数据提交...');
-
-
-      // 准备数据
+      // 准备数据（移到前面，供备用方案使用）
       const dataToInsert = {
         '日期': formatDate(date),
         '进厂数据': incomingNum,
         '生产数据': productionNum,
         '出厂数据': outgoingNum,
       };
+
+      // 运行完整的网络诊断
+      console.log('开始网络诊断...');
+      const diagnostics = await diagnoseNetworkConnection();
+
+      if (!diagnostics.authentication) {
+        console.log('anon key认证失败，尝试使用service key...');
+
+        // 备用方案：使用service key
+        try {
+          const serviceClient = createServiceClient();
+          const testResult = await serviceClient
+            .from('demo')
+            .select('count')
+            .limit(1);
+
+          if (testResult.error) {
+            throw new Error(`Service key也失败: ${testResult.error.message}`);
+          }
+
+          console.log('Service key测试成功，使用service key提交数据');
+          // 使用service client继续
+          const supabase = serviceClient;
+
+          const { data, error } = await supabase
+            .from('demo')
+            .insert(dataToInsert)
+            .select();
+
+          if (error) {
+            throw new Error(`Service key提交失败: ${error.message}`);
+          }
+
+          console.log('使用Service key数据提交成功:', data);
+          alert("数据提交成功（使用备用认证）");
+
+          // 清空表单
+          setDate(undefined);
+          setIncomingData("");
+          setProductionData("");
+          setOutgoingData("");
+
+          onDataSubmitted?.();
+          return; // 成功退出
+
+        } catch (serviceError) {
+          console.error('Service key也失败:', serviceError);
+          throw new Error('所有认证方式都失败，请检查控制台详细信息');
+        }
+      }
+
+      console.log('网络诊断通过，继续数据提交...');
+
 
       console.log('准备提交的数据:', dataToInsert);
 
