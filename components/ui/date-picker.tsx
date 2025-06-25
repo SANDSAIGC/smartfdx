@@ -4,7 +4,6 @@ import * as React from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 interface DatePickerProps {
   date?: Date;
@@ -36,8 +35,8 @@ export function DatePicker({
   className,
   disabled = false,
 }: DatePickerProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -46,12 +45,30 @@ export function DatePicker({
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value) {
-      const newDate = new Date(value);
+      const newDate = new Date(value + 'T00:00:00');
       if (!isNaN(newDate.getTime())) {
         onSelect?.(newDate);
       }
     } else {
       onSelect?.(undefined);
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (inputRef.current && !disabled) {
+      try {
+        // 尝试使用现代的showPicker API
+        if ('showPicker' in inputRef.current) {
+          inputRef.current.showPicker();
+        } else {
+          // 回退到focus和click
+          inputRef.current.focus();
+          inputRef.current.click();
+        }
+      } catch (error) {
+        // 如果showPicker失败，回退到focus
+        inputRef.current.focus();
+      }
     }
   };
 
@@ -74,7 +91,7 @@ export function DatePicker({
           !date && "text-muted-foreground"
         )}
         disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleButtonClick}
         type="button"
       >
         <CalendarIcon className="mr-2 h-4 w-4" />
@@ -82,13 +99,16 @@ export function DatePicker({
       </Button>
 
       {/* 隐藏的原生日期输入 */}
-      <Input
+      <input
+        ref={inputRef}
         type="date"
         value={getDateValue(date)}
         onChange={handleDateChange}
-        className="absolute inset-0 opacity-0 cursor-pointer"
+        className="absolute top-0 left-0 w-0 h-0 opacity-0 pointer-events-none"
         disabled={disabled}
         suppressHydrationWarning
+        tabIndex={-1}
+        style={{ position: 'absolute', left: '-9999px' }}
       />
     </div>
   );
