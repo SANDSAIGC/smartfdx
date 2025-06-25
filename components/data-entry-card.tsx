@@ -54,22 +54,65 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
       return;
     }
 
+    // 验证数据格式
+    const incomingNum = parseInt(incomingData);
+    const productionNum = parseInt(productionData);
+    const outgoingNum = parseInt(outgoingData);
+
+    if (isNaN(incomingNum) || isNaN(productionNum) || isNaN(outgoingNum)) {
+      alert("请输入有效的数字");
+      return;
+    }
+
+    if (incomingNum < 0 || productionNum < 0 || outgoingNum < 0) {
+      alert("数据不能为负数");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const supabase = createClient();
-      
-      const { error } = await supabase
-        .from('demo')
-        .insert({
-          '日期': formatDate(date),
-          '进厂数据': parseInt(incomingData),
-          '生产数据': parseInt(productionData),
-          '出厂数据': parseInt(outgoingData),
+
+      // 验证Supabase配置
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      console.log('Supabase客户端已创建');
+
+      // 测试网络连接
+      try {
+        const response = await fetch(process.env.NEXT_PUBLIC_SUPABASE_URL + '/rest/v1/', {
+          method: 'HEAD',
+          headers: {
+            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          }
         });
+        console.log('网络连接测试:', response.status, response.statusText);
+      } catch (netError) {
+        console.error('网络连接失败:', netError);
+        throw new Error('无法连接到数据库服务器，请检查网络连接');
+      }
 
-      if (error) throw error;
+      // 准备数据
+      const dataToInsert = {
+        '日期': formatDate(date),
+        '进厂数据': incomingNum,
+        '生产数据': productionNum,
+        '出厂数据': outgoingNum,
+      };
 
+      console.log('准备提交的数据:', dataToInsert);
+
+      const { data, error } = await supabase
+        .from('demo')
+        .insert(dataToInsert)
+        .select();
+
+      if (error) {
+        console.error('Supabase错误详情:', error);
+        throw new Error(`数据库错误: ${error.message}`);
+      }
+
+      console.log('数据提交成功:', data);
       alert("数据提交成功");
 
       // 清空表单
@@ -83,7 +126,14 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
 
     } catch (error) {
       console.error('提交数据失败:', error);
-      alert("数据提交失败，请重试");
+
+      // 显示更详细的错误信息
+      let errorMessage = "数据提交失败，请重试";
+      if (error instanceof Error) {
+        errorMessage = `提交失败: ${error.message}`;
+      }
+
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
