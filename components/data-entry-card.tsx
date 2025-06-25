@@ -41,6 +41,11 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
     setIsMounted(true);
   }, []);
 
+  // 防止SSR不匹配
+  if (!isMounted) {
+    return <div>加载中...</div>;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -76,19 +81,34 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
 
       // 验证Supabase配置
       console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      console.log('Supabase ANON KEY长度:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length);
       console.log('Supabase客户端已创建');
 
-      // 测试网络连接
+      // 测试网络连接和认证
       try {
         const response = await fetch(process.env.NEXT_PUBLIC_SUPABASE_URL + '/rest/v1/', {
           method: 'HEAD',
           headers: {
             'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
           }
         });
         console.log('网络连接测试:', response.status, response.statusText);
+
+        if (response.status === 401) {
+          throw new Error('认证失败：API密钥无效');
+        }
+        if (response.status === 403) {
+          throw new Error('权限不足：无法访问数据库');
+        }
+        if (!response.ok) {
+          throw new Error(`服务器错误：${response.status} ${response.statusText}`);
+        }
       } catch (netError) {
         console.error('网络连接失败:', netError);
+        if (netError instanceof Error) {
+          throw netError;
+        }
         throw new Error('无法连接到数据库服务器，请检查网络连接');
       }
 
@@ -109,6 +129,21 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
 
       if (error) {
         console.error('Supabase错误详情:', error);
+
+        // 处理特定的认证错误
+        if (error.message.includes('Invalid authentication credentials')) {
+          throw new Error('认证失败：请检查API密钥配置');
+        }
+        if (error.message.includes('JWT')) {
+          throw new Error('认证令牌错误：请重新配置认证信息');
+        }
+        if (error.message.includes('permission')) {
+          throw new Error('权限不足：无法写入数据库');
+        }
+        if (error.message.includes('RLS')) {
+          throw new Error('数据库安全策略错误：请检查RLS配置');
+        }
+
         throw new Error(`数据库错误: ${error.message}`);
       }
 
