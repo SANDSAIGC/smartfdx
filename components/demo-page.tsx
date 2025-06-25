@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DataEntryCard } from "@/components/data-entry-card";
 import { DataDisplayCard } from "@/components/data-display-card";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function DemoPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // 调试：检查环境变量
+  useEffect(() => {
+    console.log('=== Demo页面环境变量检查 ===');
+    console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY存在:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY长度:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length);
+    console.log('================================');
+  }, []);
 
   // 当数据录入成功后，触发数据展示区刷新
   const handleDataSubmitted = () => {
