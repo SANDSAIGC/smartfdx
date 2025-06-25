@@ -4,6 +4,7 @@ import * as React from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface DatePickerProps {
   date?: Date;
@@ -36,7 +37,6 @@ export function DatePicker({
   disabled = false,
 }: DatePickerProps) {
   const [isMounted, setIsMounted] = React.useState(false);
-  const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -54,24 +54,6 @@ export function DatePicker({
     }
   };
 
-  const handleButtonClick = () => {
-    if (inputRef.current && !disabled) {
-      try {
-        // 尝试使用现代的showPicker API
-        if ('showPicker' in inputRef.current) {
-          inputRef.current.showPicker();
-        } else {
-          // 回退到focus和click
-          inputRef.current.focus();
-          inputRef.current.click();
-        }
-      } catch (error) {
-        // 如果showPicker失败，回退到focus
-        inputRef.current.focus();
-      }
-    }
-  };
-
   const getDateValue = (date: Date | undefined) => {
     if (!date || !isMounted) return "";
     return formatDateValue(date);
@@ -83,32 +65,21 @@ export function DatePicker({
   };
 
   return (
-    <div className={cn("relative", className)}>
-      <Button
-        variant="outline"
-        className={cn(
-          "w-full justify-start text-left font-normal",
-          !date && "text-muted-foreground"
-        )}
-        disabled={disabled}
-        onClick={handleButtonClick}
-        type="button"
-      >
-        <CalendarIcon className="mr-2 h-4 w-4" />
-        {getDisplayDate(date)}
-      </Button>
+    <div className={cn("space-y-2", className)}>
+      {/* 显示选中的日期 */}
+      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+        <CalendarIcon className="h-4 w-4" />
+        <span>{getDisplayDate(date)}</span>
+      </div>
 
-      {/* 隐藏的原生日期输入 */}
-      <input
-        ref={inputRef}
+      {/* 原生日期输入 */}
+      <Input
         type="date"
         value={getDateValue(date)}
         onChange={handleDateChange}
-        className="absolute top-0 left-0 w-0 h-0 opacity-0 pointer-events-none"
         disabled={disabled}
-        suppressHydrationWarning
-        tabIndex={-1}
-        style={{ position: 'absolute', left: '-9999px' }}
+        className="w-full"
+        placeholder={placeholder}
       />
     </div>
   );
