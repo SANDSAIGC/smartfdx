@@ -14,7 +14,8 @@ export function createClient() {
 
   console.log('Supabase配置:', {
     url: supabaseUrl,
-    keyLength: supabaseAnonKey.length
+    keyLength: supabaseAnonKey.length,
+    keyPreview: supabaseAnonKey.substring(0, 50) + '...'
   });
 
   return createBrowserClient(supabaseUrl, supabaseAnonKey, {
@@ -22,5 +23,10 @@ export function createClient() {
       persistSession: false, // 不持久化会话，使用匿名访问
       autoRefreshToken: false,
     },
+    global: {
+      headers: {
+        'apikey': supabaseAnonKey,
+      }
+    }
   });
 }

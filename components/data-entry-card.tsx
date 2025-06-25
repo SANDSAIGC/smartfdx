@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { diagnoseNetworkConnection } from "@/lib/network-diagnostics";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -84,33 +85,16 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
       console.log('Supabase ANON KEY长度:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length);
       console.log('Supabase客户端已创建');
 
-      // 测试网络连接和认证
-      try {
-        const response = await fetch(process.env.NEXT_PUBLIC_SUPABASE_URL + '/rest/v1/', {
-          method: 'HEAD',
-          headers: {
-            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-          }
-        });
-        console.log('网络连接测试:', response.status, response.statusText);
+      // 运行完整的网络诊断
+      console.log('开始网络诊断...');
+      const diagnostics = await diagnoseNetworkConnection();
 
-        if (response.status === 401) {
-          throw new Error('认证失败：API密钥无效');
-        }
-        if (response.status === 403) {
-          throw new Error('权限不足：无法访问数据库');
-        }
-        if (!response.ok) {
-          throw new Error(`服务器错误：${response.status} ${response.statusText}`);
-        }
-      } catch (netError) {
-        console.error('网络连接失败:', netError);
-        if (netError instanceof Error) {
-          throw netError;
-        }
-        throw new Error('无法连接到数据库服务器，请检查网络连接');
+      if (!diagnostics.authentication) {
+        throw new Error('网络诊断失败：无法通过认证测试，请检查控制台详细信息');
       }
+
+      console.log('网络诊断通过，继续数据提交...');
+
 
       // 准备数据
       const dataToInsert = {
