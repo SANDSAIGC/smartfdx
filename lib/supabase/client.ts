@@ -36,7 +36,7 @@ export function createClient() {
 export function createServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   // 注意：通常不建议在前端使用service role key，这里仅用于测试
-  const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3NTA2OTQ0NDAwLCJleHAiOjE5MDg0NjA4MDB9.b5G8hlawEhdHuE8n_CnAm5waQwsscWWzN8JFrk15oGM';
+  const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3NTA4MTQ0MzEsImV4cCI6MTc4MjM1MDQzMX0.ysCmJRVQs0BlHQVYKSZExNHcsKKkvUrMw4-QOkSxZt0';
 
   if (!supabaseUrl) {
     throw new Error('Supabase URL缺失');
