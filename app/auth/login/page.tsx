@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/login-form";
+import { LoginPageContent } from "@/components/login-page-content";
 import { ModeToggle } from "@/components/mode-toggle";
 
 export default function Page() {
@@ -23,7 +23,7 @@ export default function Page() {
             <p className="text-muted-foreground">智能车间2.0</p>
           </div>
 
-          <LoginForm />
+          <LoginPageContent />
         </div>
       </div>
 

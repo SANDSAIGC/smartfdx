@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface DatePickerProps {
   date?: Date;
@@ -12,21 +12,19 @@ interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  label?: string;
 }
 
-// 本地日期格式化函数
-function formatDateValue(date: Date): string {
+// 格式化日期为YYYY-MM-DD格式
+function formatDate(date: Date | undefined): string {
+  if (!date) {
+    return "";
+  }
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-}
-
-function formatDisplayDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}年${month}月${day}日`;
 }
 
 export function DatePicker({
@@ -35,52 +33,47 @@ export function DatePicker({
   placeholder = "选择日期",
   className,
   disabled = false,
+  label,
 }: DatePickerProps) {
-  const [isMounted, setIsMounted] = React.useState(false);
+  const [value, setValue] = React.useState(formatDate(date));
 
+  // 同步外部date变化到内部状态
   React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value) {
-      const newDate = new Date(value + 'T00:00:00');
-      if (!isNaN(newDate.getTime())) {
-        onSelect?.(newDate);
-      }
-    } else {
-      onSelect?.(undefined);
-    }
-  };
-
-  const getDateValue = (date: Date | undefined) => {
-    if (!date || !isMounted) return "";
-    return formatDateValue(date);
-  };
-
-  const getDisplayDate = (date: Date | undefined) => {
-    if (!date || !isMounted) return placeholder;
-    return formatDisplayDate(date);
-  };
+    setValue(formatDate(date));
+  }, [date]);
 
   return (
-    <div className={cn("space-y-2", className)}>
-      {/* 显示选中的日期 */}
-      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-        <CalendarIcon className="h-4 w-4" />
-        <span>{getDisplayDate(date)}</span>
-      </div>
+    <div className={cn("flex flex-col gap-3", className)}>
+      {label && (
+        <Label htmlFor="date" className="px-1">
+          {label}
+        </Label>
+      )}
+      <div className="relative">
+        <Input
+          id="date"
+          type="date"
+          value={value}
+          placeholder={placeholder}
+          className="bg-background pr-10"
+          disabled={disabled}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            setValue(inputValue);
 
-      {/* 原生日期输入 */}
-      <Input
-        type="date"
-        value={getDateValue(date)}
-        onChange={handleDateChange}
-        disabled={disabled}
-        className="w-full"
-        placeholder={placeholder}
-      />
+            // 解析日期
+            if (inputValue) {
+              const parsedDate = new Date(inputValue + 'T00:00:00');
+              if (!isNaN(parsedDate.getTime())) {
+                onSelect?.(parsedDate);
+              }
+            } else {
+              onSelect?.(undefined);
+            }
+          }}
+        />
+        <CalendarIcon className="absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+      </div>
     </div>
   );
 }

@@ -1,12 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -16,23 +14,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useCallback, useMemo } from "react";
+import { LoginRequest, LoginResponse } from "@/lib/types/auth";
+import { useUser } from "@/lib/contexts/user-context";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
+  const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isButtonPressed, setIsButtonPressed] = useState(false);
   const router = useRouter();
+  const { login } = useUser();
 
   // 验证逻辑优化
   const isFormValid = useMemo(() => {
-    return email.trim() !== "" && password.trim() !== "";
-  }, [email, password]);
+    return account.trim() !== "" && password.trim() !== "";
+  }, [account, password]);
 
   const handleLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,20 +50,76 @@ export function LoginForm({
     setIsLoading(true);
     setError(null);
 
+    console.log('🚀 [登录] 开始登录流程', { account, password: '***' });
+
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      // 使用新的API路由进行身份验证
+      const loginRequest: LoginRequest = {
+        email: account, // 使用account作为登录凭据
         password,
+      };
+
+      console.log('📤 [登录] 发送登录请求', loginRequest);
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginRequest),
       });
-      if (error) throw error;
-      router.push("/protected");
+
+      console.log('📥 [登录] 收到响应', { status: response.status, ok: response.ok });
+
+      const result: LoginResponse = await response.json();
+      console.log('📋 [登录] 解析响应数据', result);
+
+      if (!result.success) {
+        console.error('❌ [登录] 登录失败', result.message);
+        setError(result.message || "登录失败，请重试");
+        return;
+      }
+
+      // 登录成功，显示成功消息
+      console.log('✅ [登录] 登录成功', result.message);
+
+      // 保存用户信息到Context
+      if (result.user) {
+        console.log('💾 [登录] 保存用户信息', result.user);
+        // 构造完整的用户信息对象
+        const userProfile = {
+          id: result.user.id,
+          账号: result.user.账号,
+          姓名: result.user.姓名,
+          部门: result.user.部门,
+          电话: '', // API返回中没有这些字段，使用默认值
+          密码: '', // 不保存密码
+          工作页面: result.user.工作页面,
+          职称: result.user.职称 || '化验师', // 使用API返回的职称，默认为化验师
+          状态: '正常'
+        };
+
+        // 使用新的login函数，支持"记住我"功能
+        login(userProfile, rememberMe);
+        console.log('✅ [登录] 用户登录状态已保存，记住我:', rememberMe);
+      }
+
+      // 登录成功，立即触发重定向
+      // 重定向逻辑由 LoginPageContent 组件统一处理，避免双重重定向
+      console.log('✅ [登录] 登录成功，触发页面重新渲染以启动重定向...');
+
+      // 立即重置加载状态，让 LoginPageContent 重新渲染并处理重定向
+      setIsLoading(false);
+
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "登录失败，请重试");
-    } finally {
+      console.error('❌ [登录] 请求错误:', error);
+      setError("网络错误，请检查连接后重试");
       setIsLoading(false);
     }
-  }, [email, password, isFormValid, router]);
+    // 登录成功时已经在上面立即设置了 setIsLoading(false)
+    // 登录失败时在 catch 块中设置 setIsLoading(false)
+    // 不需要 finally 块
+  }, [account, password, isFormValid, router]);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -74,14 +131,14 @@ export function LoginForm({
           <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">账号</Label>
+                <Label htmlFor="account">账号</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="请输入账号"
+                  id="account"
+                  type="text"
+                  placeholder="请输入工号或账号"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={account}
+                  onChange={(e) => setAccount(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">

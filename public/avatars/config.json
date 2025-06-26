@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "avatars": [
+    {
+      "id": "avatar1",
+      "name": "默认头像1",
+      "url": "/avatars/avatar1.svg",
+      "type": "svg"
+    },
+    {
+      "id": "avatar2",
+      "name": "默认头像2",
+      "url": "/avatars/avatar2.svg",
+      "type": "svg"
+    },
+    {
+      "id": "avatar3",
+      "name": "默认头像3",
+      "url": "/avatars/avatar3.svg",
+      "type": "svg"
+    },
+    {
+      "id": "avatar4",
+      "name": "默认头像4",
+      "url": "/avatars/avatar4.svg",
+      "type": "svg"
+    },
+    {
+      "id": "avatar5",
+      "name": "默认头像5",
+      "url": "/avatars/avatar5.svg",
+      "type": "svg"
+    },
+    {
+      "id": "avatar6",
+      "name": "默认头像6",
+      "url": "/avatars/avatar6.svg",
+      "type": "svg"
+    }
+  ]
+}

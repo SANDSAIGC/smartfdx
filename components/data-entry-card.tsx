@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
 import { createClient, createServiceClient } from "@/lib/supabase/client";
+import { SubmitLoading } from "@/components/loading-transition";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -184,14 +184,12 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
           {/* 日期选择 */}
-          <div className="space-y-2">
-            <Label>日期</Label>
-            <DatePicker
-              date={date}
-              onSelect={setDate}
-              placeholder="选择日期"
-            />
-          </div>
+          <DatePicker
+            date={date}
+            onSelect={setDate}
+            placeholder="请选择日期"
+            label="日期"
+          />
 
           {/* 数据输入字段 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -234,13 +232,19 @@ export function DataEntryCard({ onDataSubmitted }: DataEntryCardProps) {
         </CardContent>
         
         <CardFooter>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full"
             disabled={isSubmitting}
           >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "提交中..." : "提交数据"}
+            {isSubmitting ? (
+              <div className="flex items-center">
+                <SubmitLoading />
+                <span className="ml-2">提交中...</span>
+              </div>
+            ) : (
+              "提交数据"
+            )}
           </Button>
         </CardFooter>
       </form>
