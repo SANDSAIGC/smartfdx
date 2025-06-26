@@ -172,21 +172,24 @@ export function LabPage() {
       label: "压滤样",
       description: "压滤机样品化验",
       dataSource: 'filter_samples' as DataSource,
-      isNavigationButton: false
+      isNavigationButton: true,
+      route: '/filter-sample'
     },
     {
       icon: Beaker,
       label: "进厂样",
       description: "进厂原矿化验",
       dataSource: 'incoming_samples' as DataSource,
-      isNavigationButton: false
+      isNavigationButton: true,
+      route: '/incoming-sample'
     },
     {
       icon: Truck,
       label: "出厂样",
       description: "出厂精矿化验",
       dataSource: 'outgoing_sample' as DataSource,
-      isNavigationButton: false
+      isNavigationButton: true,
+      route: '/outgoing-sample'
     }
   ];
 
