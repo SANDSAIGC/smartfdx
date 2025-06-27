@@ -15,7 +15,21 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
+import { LoadingTransition, SkeletonLoading } from "@/components/loading-transition";
 // 类型定义
 interface ManagementModule {
   icon: React.ReactNode;
@@ -35,6 +49,10 @@ interface BusinessMetric {
 }
 
 export function BossPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('boss-page');
+  const { addTimer, addListener } = useMemoryLeak('boss-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 状态管理
@@ -167,11 +185,19 @@ export function BossPage() {
       });
     }, 8000);
 
-    return () => clearInterval(interval);
+    return (
+    <PerformanceWrapper
+      componentName="boss-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      
+    </PerformanceWrapper>
+  ) => clearInterval(interval);
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -216,9 +242,9 @@ export function BossPage() {
           </div>
 
           {/* 业务指标卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {businessMetrics.map((metric, index) => (
-              <Card key={index}>
+              <AnimatedCard delay={0} key={index}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                   <div className={metric.color}>
@@ -232,12 +258,12 @@ export function BossPage() {
                     {metric.change} 较上月
                   </p>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             ))}
           </div>
 
           {/* 生产效率监控 */}
-          <Card>
+          <AnimatedCard delay={0.1}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Gauge className="w-5 h-5 mr-2 text-purple-500" />
@@ -245,7 +271,7 @@ export function BossPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <AnimatedListItem index={0} className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">当前效率</span>
                   <span className="text-2xl font-bold text-purple-600">
@@ -278,18 +304,18 @@ export function BossPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* 管理模块 */}
-          <Card>
+          <AnimatedCard delay={0.2}>
             <CardHeader>
               <CardTitle>企业管理模块</CardTitle>
               <p className="text-sm text-muted-foreground">点击进入相应管理模块</p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <AnimatedListItem index={1} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {managementModules.map((module, index) => (
-                  <Button
+                  <AnimatedButton
                     key={index}
                     variant="outline"
                     className="h-24 flex flex-col items-center justify-center space-y-2 relative"
@@ -310,10 +336,10 @@ export function BossPage() {
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* AI智能统计师 */}
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+          <AnimatedCard delay={0.30000000000000004} className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
@@ -330,13 +356,13 @@ export function BossPage() {
                   <h3 className="text-lg font-medium">AI驱动的数据统计分析平台</h3>
                   <p className="text-sm text-muted-foreground">智能分析企业数据，提供决策支持</p>
                 </div>
-                <Button onClick={handleAIStatisticianClick} className="bg-blue-600 hover:bg-blue-700">
+                <AnimatedButton onClick={handleAIStatisticianClick} className="bg-blue-600 hover:bg-blue-700">
                   <Bot className="w-4 h-4 mr-2" />
                   启动AI助手
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </motion.div>
       </div>
 

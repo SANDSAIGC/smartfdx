@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/lib/contexts/user-context';
+import { RedirectManager } from '@/lib/redirect-manager';
 import { AuthLoading } from '@/components/loading-transition';
+import { PerformanceWrapper } from '@/components/performance-wrapper';
+import { useRenderPerformance, useMemoryLeak } from '@/hooks/use-performance-optimization';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -21,6 +24,10 @@ export function AuthGuard({
   const { user, session, isAuthenticated, isLoading } = useUser();
   const router = useRouter();
   const [hasRedirected, setHasRedirected] = useState(false);
+
+  // 性能监控
+  const { renderCount } = useRenderPerformance('AuthGuard');
+  const { addTimer, addListener } = useMemoryLeak('AuthGuard');
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -72,23 +79,25 @@ export function AuthGuard({
         return;
       }
 
-      // 用户未认证，执行重定向
-      console.log('❌ [AuthGuard] 用户未认证，准备重定向到登录页面');
+      // 使用智能重定向管理器处理未认证用户
+      console.log('❌ [AuthGuard] 用户未认证，使用智能重定向管理器');
 
-      // 保存当前页面路径作为重定向参数
-      const redirectUrl = `${redirectTo}?redirect=${encodeURIComponent(currentPath)}`;
+      const redirectResult = RedirectManager.handleAuthRequired(currentPath, false);
 
-      console.log('🔄 [AuthGuard] 保存原始访问路径:', currentPath);
-      console.log('🚀 [AuthGuard] 重定向到:', redirectUrl);
+      console.log('🔍 [AuthGuard] 重定向结果:', redirectResult);
 
-      // 设置重定向标志，防止重复重定向
-      setHasRedirected(true);
+      if (redirectResult.shouldRedirect) {
+        // 设置重定向标志，防止重复重定向
+        setHasRedirected(true);
 
-      // 使用 setTimeout 确保重定向在下一个事件循环中执行
-      setTimeout(() => {
-        console.log('🎯 [AuthGuard] 执行重定向...');
-        router.replace(redirectUrl);
-      }, 0);
+        console.log('🚀 [AuthGuard] 执行重定向到:', redirectResult.targetUrl);
+
+        if (redirectResult.replaceHistory) {
+          router.replace(redirectResult.targetUrl);
+        } else {
+          router.push(redirectResult.targetUrl);
+        }
+      }
     };
 
     verifyAuth();
@@ -111,7 +120,15 @@ export function AuthGuard({
   // 如果用户已认证，直接渲染子组件
   if (isAuthenticated && user && session) {
     console.log('🎯 [AuthGuard] 认证通过，渲染页面内容');
-    return <>{children}</>;
+    return (
+      <PerformanceWrapper
+        componentName="AuthGuard-Content"
+        enableMonitoring={process.env.NODE_ENV === 'development'}
+        enableMemoryTracking={true}
+      >
+        {children}
+      </PerformanceWrapper>
+    );
   }
 
   // 用户未认证，显示fallback或空内容（重定向已在useEffect中处理）

@@ -12,7 +12,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 类型定义
 interface WorkStation {
   icon: React.ReactNode;
@@ -25,6 +38,10 @@ interface WorkStation {
 }
 
 export function CosPlayPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('cosplay-page');
+  const { addTimer, addListener } = useMemoryLeak('cosplay-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   
@@ -142,7 +159,12 @@ export function CosPlayPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="cosplay-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -186,7 +208,7 @@ export function CosPlayPage() {
           </div>
 
           {/* 部门筛选 */}
-          <Card>
+          <AnimatedCard delay={0}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <MapPin className="w-5 h-5 mr-2" />
@@ -207,10 +229,10 @@ export function CosPlayPage() {
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* 工作站网格 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredWorkStations.map((station, index) => (
               <motion.div
                 key={index}
@@ -218,7 +240,7 @@ export function CosPlayPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
               >
-                <Card 
+                <AnimatedCard delay={0.1} 
                   className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
                     station.status === "offline" ? "opacity-50" : ""
                   }`}
@@ -235,7 +257,7 @@ export function CosPlayPage() {
                           <p className="text-sm text-muted-foreground">{station.department}</p>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end space-y-1">
+                      <AnimatedListItem index={0} className="flex flex-col items-end space-y-1">
                         <Badge 
                           className={`${getStatusColor(station.status)} text-white text-xs`}
                         >
@@ -268,13 +290,13 @@ export function CosPlayPage() {
                       </Button>
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
               </motion.div>
             ))}
           </div>
 
           {/* 统计信息 */}
-          <Card>
+          <AnimatedCard delay={0.2}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <MessageCircle className="w-5 h-5 mr-2" />
@@ -282,7 +304,7 @@ export function CosPlayPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <AnimatedListItem index={1} className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
                     {workStations.filter(s => s.status === "active").length}
@@ -309,9 +331,10 @@ export function CosPlayPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </motion.div>
       </div>
-    </div>
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

@@ -8,7 +8,17 @@ import { RefreshCw, TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from "
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { 
+  UnifiedChart,
+  TrendLineChart,
+  ComparisonBarChart,
+  AreaChart as UnifiedAreaChart,
+  PieChart as UnifiedPieChart,
+  ComposedChart as UnifiedComposedChart,
+  createChartConfig,
+  formatChartData,
+  calculateTrend
+} from "@/components/ui/unified-chart";
 import { DataLoading } from "@/components/loading-transition";
 
 interface ComparisonData {
@@ -19,13 +29,11 @@ interface ComparisonData {
   jdxy_moisture: number;
 }
 
-interface DateRange {
-  from: Date;
-  to: Date;
-}
+// 导入Lab日期选择器组件和类型
+import { LabDateSelector, type LabDateRange } from "@/components/lab-date-selector";
 
 interface DataComparisonSectionProps {
-  dateRange: DateRange;
+  dateRange: LabDateRange;
 }
 
 export function DataComparisonSection({ dateRange }: DataComparisonSectionProps) {
@@ -34,6 +42,9 @@ export function DataComparisonSection({ dateRange }: DataComparisonSectionProps)
   const [incomingData, setIncomingData] = useState<ComparisonData[]>([]);
   const [productionData, setProductionData] = useState<ComparisonData[]>([]);
   const [outgoingData, setOutgoingData] = useState<ComparisonData[]>([]);
+
+  // 独立的日期范围状态（用于数据对比区域）
+  const [localDateRange, setLocalDateRange] = useState<LabDateRange>(dateRange);
 
   // 图表配置
   const chartConfig = {
@@ -90,8 +101,8 @@ export function DataComparisonSection({ dateRange }: DataComparisonSectionProps)
         body: JSON.stringify({
           tableName,
           dateRange: {
-            start: format(dateRange.from, 'yyyy-MM-dd'),
-            end: format(dateRange.to, 'yyyy-MM-dd')
+            start: format(localDateRange.from, 'yyyy-MM-dd'),
+            end: format(localDateRange.to, 'yyyy-MM-dd')
           }
         }),
       });
@@ -252,6 +263,20 @@ export function DataComparisonSection({ dateRange }: DataComparisonSectionProps)
     }
   }, [activeTab]);
 
+  // 当本地日期范围变化时，重新获取数据
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchComparisonData();
+    }, 500); // 500ms防抖
+
+    return () => clearTimeout(timeoutId);
+  }, [localDateRange.from?.getTime(), localDateRange.to?.getTime()]);
+
+  // 同步外部日期范围变化到本地状态
+  useEffect(() => {
+    setLocalDateRange(dateRange);
+  }, [dateRange]);
+
   // 获取当前数据
   const currentData = activeTab === "incoming" ? incomingData :
                      activeTab === "production" ? productionData :
@@ -288,21 +313,18 @@ export function DataComparisonSection({ dateRange }: DataComparisonSectionProps)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* 刷新按钮 */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            使用上方日期选择器设置的日期范围进行数据对比
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchComparisonData}
-            disabled={isLoading}
-          >
-            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-            刷新数据
-          </Button>
-        </div>
+        {/* 独立的日期选择器 */}
+        <LabDateSelector
+          dateRange={localDateRange}
+          onDateRangeChange={setLocalDateRange}
+          onRefresh={fetchComparisonData}
+          isLoading={isLoading}
+          showPresets={true}
+          showRefreshButton={true}
+          showStatistics={true}
+          compact={true}
+          className="mb-4"
+        />
 
         {/* 数据对比轮播 */}
         <div className="space-y-4">
@@ -451,47 +473,14 @@ function DataComparisonChart({ data, isLoading, chartConfig, statistics, title }
       )}
 
       {/* 图表 */}
-      <ChartContainer config={chartConfig} className="h-[300px] sm:h-[350px] md:h-[400px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ChartLegend />
-            <Line 
-              type="monotone" 
-              dataKey="fdx_grade" 
-              stroke={chartConfig.fdx_grade.color} 
-              strokeWidth={2}
-              name={chartConfig.fdx_grade.label}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="jdxy_grade" 
-              stroke={chartConfig.jdxy_grade.color} 
-              strokeWidth={2}
-              name={chartConfig.jdxy_grade.label}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="fdx_moisture" 
-              stroke={chartConfig.fdx_moisture.color} 
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              name={chartConfig.fdx_moisture.label}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="jdxy_moisture" 
-              stroke={chartConfig.jdxy_moisture.color} 
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              name={chartConfig.jdxy_moisture.label}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </ChartContainer>
+      <TrendLineChart
+          data={data}
+          config={chartConfig}
+          title="趋势分析"
+          description="数据变化趋势图表"
+          height={400}
+          showActions={true}
+        />
     </div>
   );
 }

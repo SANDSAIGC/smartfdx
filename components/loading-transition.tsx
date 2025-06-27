@@ -22,13 +22,17 @@ interface LoadingTransitionProps {
   /** 自定义样式类名 */
   className?: string;
   /** 加载状态类型 */
-  variant?: 'default' | 'minimal' | 'detailed' | 'fullscreen';
+  variant?: 'default' | 'minimal' | 'detailed' | 'fullscreen' | 'skeleton' | 'table' | 'card';
   /** 自定义图标 */
   icon?: React.ComponentType<{ className?: string }>;
   /** 是否自动进度模拟 */
   autoProgress?: boolean;
   /** 自动进度持续时间(毫秒) */
   autoProgressDuration?: number;
+  /** 骨架屏行数 */
+  skeletonRows?: number;
+  /** 骨架屏列数 */
+  skeletonCols?: number;
 }
 
 /**
@@ -48,7 +52,9 @@ export function LoadingTransition({
   variant = 'default',
   icon: CustomIcon,
   autoProgress = false,
-  autoProgressDuration = 2000
+  autoProgressDuration = 2000,
+  skeletonRows = 3,
+  skeletonCols = 1
 }: LoadingTransitionProps) {
   const [currentProgress, setCurrentProgress] = useState(progress);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -91,6 +97,56 @@ export function LoadingTransition({
   // 如果不在加载状态且没有完成动画，不渲染
   if (!isLoading && !isCompleted) {
     return null;
+  }
+
+  // 骨架屏变体的特殊处理
+  if (variant === 'skeleton' || variant === 'table' || variant === 'card') {
+    return (
+      <div className={cn("space-y-3", className)}>
+        {variant === 'table' && (
+          <div className="space-y-3">
+            {Array.from({ length: skeletonRows }).map((_, i) => (
+              <div key={i} className="flex space-x-4">
+                {Array.from({ length: skeletonCols }).map((_, j) => (
+                  <div key={j} className="flex-1 space-y-2">
+                    <Progress value={30 + (i * j * 10) % 40} className="h-8 rounded-md bg-muted" />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {variant === 'card' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: skeletonRows }).map((_, i) => (
+              <div key={i} className="space-y-3 p-4 border rounded-lg">
+                <Progress value={20 + (i * 15) % 60} className="h-4 rounded bg-muted" />
+                <Progress value={40 + (i * 10) % 50} className="h-6 rounded bg-muted" />
+                <Progress value={15 + (i * 8) % 30} className="h-3 rounded bg-muted" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {variant === 'skeleton' && (
+          <div className="space-y-3">
+            {Array.from({ length: skeletonRows }).map((_, i) => (
+              <Progress
+                key={i}
+                value={25 + (i * 12) % 50}
+                className={cn(
+                  "rounded-md bg-muted",
+                  i % 3 === 0 && "h-8",
+                  i % 3 === 1 && "h-6",
+                  i % 3 === 2 && "h-4"
+                )}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
   }
 
   // 选择图标
@@ -275,5 +331,34 @@ export const SubmitLoading = () => (
     showProgress={true}
     autoProgress={true}
     autoProgressDuration={1200}
+  />
+);
+
+// 骨架屏加载组件
+export const SkeletonLoading = (props: { rows?: number; className?: string }) => (
+  <LoadingTransition
+    variant="skeleton"
+    skeletonRows={props.rows || 3}
+    className={props.className}
+    isLoading={true}
+  />
+);
+
+export const TableSkeletonLoading = (props: { rows?: number; cols?: number; className?: string }) => (
+  <LoadingTransition
+    variant="table"
+    skeletonRows={props.rows || 5}
+    skeletonCols={props.cols || 4}
+    className={props.className}
+    isLoading={true}
+  />
+);
+
+export const CardSkeletonLoading = (props: { cards?: number; className?: string }) => (
+  <LoadingTransition
+    variant="card"
+    skeletonRows={props.cards || 6}
+    className={props.className}
+    isLoading={true}
   />
 );

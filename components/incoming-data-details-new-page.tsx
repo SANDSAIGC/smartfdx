@@ -22,7 +22,20 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface IncomingData {
   weight: number | null;
@@ -32,6 +45,10 @@ interface IncomingData {
 }
 
 export function IncomingDataDetailsNewPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('incoming-data-details-new-page');
+  const { addTimer, addListener } = useMemoryLeak('incoming-data-details-new-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   const [date, setDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
@@ -96,7 +113,12 @@ export function IncomingDataDetailsNewPage() {
     const progressValue = value !== null ? (value / maxValue) * 100 : 0;
 
     return (
-      <Card className="overflow-hidden">
+    <PerformanceWrapper
+      componentName="incoming-data-details-new-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedCard delay={0} className="overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center">
             <span className={`mr-2 ${color}`}>{icon}</span>
@@ -104,7 +126,7 @@ export function IncomingDataDetailsNewPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <AnimatedListItem index={0} className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="text-3xl font-bold">
                 {displayValue}
@@ -124,12 +146,13 @@ export function IncomingDataDetailsNewPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
-    );
+      </AnimatedCard>
+    </PerformanceWrapper>
+  );
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -157,17 +180,17 @@ export function IncomingDataDetailsNewPage() {
           className="space-y-8"
         >
           {/* 欢迎面板 */}
-          <Card>
+          <AnimatedCard delay={0.1}>
             <CardContent className="p-6">
               <div className="text-center">
                 <h2 className="text-xl font-semibold mb-2">进厂原料数据监控</h2>
                 <p className="text-muted-foreground">实时查看进厂原料的重量、水分含量和品位数据</p>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* 日期选择器 */}
-          <Card>
+          <AnimatedCard delay={0.2}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <CalendarIcon className="mr-2 h-5 w-5" />
@@ -177,7 +200,7 @@ export function IncomingDataDetailsNewPage() {
             <CardContent>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
+                  <AnimatedButton
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
@@ -198,23 +221,23 @@ export function IncomingDataDetailsNewPage() {
                 </PopoverContent>
               </Popover>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* 加载状态 */}
           {isLoading && (
-            <Card>
+            <AnimatedCard delay={0.30000000000000004}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-center space-x-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>正在加载数据...</span>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           )}
 
           {/* 数据展示卡片 */}
           {!isLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 进厂吨位 */}
               {renderDataCard(
                 "进厂吨位",
@@ -259,31 +282,31 @@ export function IncomingDataDetailsNewPage() {
 
           {/* 数据汇总 */}
           {!isLoading && (
-            <Card>
+            <AnimatedCard delay={0.4}>
               <CardHeader>
                 <CardTitle className="text-lg">数据汇总</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="space-y-2">
+                <AnimatedListItem index={1} className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <AnimatedListItem index={1} className="space-y-2">
                     <div className="text-2xl font-bold text-blue-500">
                       {data.weight?.toFixed(0) || '0'}
                     </div>
                     <div className="text-sm text-muted-foreground">总吨位</div>
                   </div>
-                  <div className="space-y-2">
+                  <AnimatedListItem index={2} className="space-y-2">
                     <div className="text-2xl font-bold text-cyan-500">
                       {data.moisture?.toFixed(1) || '0.0'}%
                     </div>
                     <div className="text-sm text-muted-foreground">平均水分</div>
                   </div>
-                  <div className="space-y-2">
+                  <AnimatedListItem index={3} className="space-y-2">
                     <div className="text-2xl font-bold text-green-500">
                       {data.znGrade?.toFixed(2) || '0.00'}%
                     </div>
                     <div className="text-sm text-muted-foreground">锌品位</div>
                   </div>
-                  <div className="space-y-2">
+                  <AnimatedListItem index={4} className="space-y-2">
                     <div className="text-2xl font-bold text-yellow-500">
                       {data.pbGrade?.toFixed(2) || '0.00'}%
                     </div>
@@ -291,12 +314,12 @@ export function IncomingDataDetailsNewPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           )}
 
           {/* 操作按钮 */}
           <div className="flex justify-center space-x-4">
-            <Button onClick={fetchData} disabled={isLoading}>
+            <AnimatedButton onClick={fetchData} disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

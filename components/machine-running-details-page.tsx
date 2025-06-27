@@ -16,17 +16,41 @@ import {
   CalendarIcon,
   Loader2
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { 
+  UnifiedChart,
+  TrendLineChart,
+  ComparisonBarChart,
+  AreaChart as UnifiedAreaChart,
+  PieChart as UnifiedPieChart,
+  ComposedChart as UnifiedComposedChart,
+  createChartConfig,
+  formatChartData,
+  calculateTrend
+} from "@/components/ui/unified-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { PaginatedTable, ColumnConfig } from "@/components/ui/paginated-table";
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface MachineRunningRecord {
   id: string;
@@ -62,6 +86,10 @@ const COLORS = {
 };
 
 export function MachineRunningDetailsPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('machine-running-details-page');
+  const { addTimer, addListener } = useMemoryLeak('machine-running-details-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [machineRecords, setMachineRecords] = useState<MachineRunningRecord[]>([]);
@@ -288,17 +316,23 @@ export function MachineRunningDetailsPage() {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-background p-3 border rounded-lg shadow-lg text-sm">
+    <PerformanceWrapper
+      componentName="machine-running-details-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <div className="bg-background p-3 border rounded-lg shadow-lg text-sm">
           <p className="font-semibold">{data.name}</p>
           <p>{data.hours} 小时 ({data.percent})</p>
-        </div>
-      );
+        </AnimatedPage>
+    </PerformanceWrapper>
+  );
     }
     return null;
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -316,7 +350,7 @@ export function MachineRunningDetailsPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 状态指示器 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -329,7 +363,7 @@ export function MachineRunningDetailsPage() {
         </div>
 
         {/* 当前设备状态卡片 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardHeader>
             <CardTitle className="text-lg flex items-center">
               <Activity className="h-5 w-5 mr-2" />
@@ -337,7 +371,7 @@ export function MachineRunningDetailsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="flex items-center space-x-3">
                 <div className={cn(
                   "h-3 w-3 rounded-full",
@@ -379,17 +413,17 @@ export function MachineRunningDetailsPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 日期范围选择 */}
-        <Card>
+        <AnimatedCard delay={0.1}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">查询时间范围</CardTitle>
           </CardHeader>
           <CardContent>
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
-                <Button
+                <AnimatedButton
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
@@ -402,7 +436,7 @@ export function MachineRunningDetailsPage() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <div className="p-3">
-                  <div className="grid grid-cols-2 gap-4">
+                  <AnimatedListItem index={1} className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium mb-2">开始日期</p>
                       <Calendar
@@ -433,10 +467,10 @@ export function MachineRunningDetailsPage() {
               </PopoverContent>
             </Popover>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 运行统计卡片 */}
-        <Card>
+        <AnimatedCard delay={0.2}>
           <CardHeader>
             <CardTitle className="text-lg">运行统计</CardTitle>
             <CardDescription>
@@ -444,7 +478,7 @@ export function MachineRunningDetailsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <AnimatedListItem index={2} className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-blue-600">{machineRecords.length}</p>
                 <p className="text-sm text-muted-foreground">总记录数</p>
@@ -469,10 +503,10 @@ export function MachineRunningDetailsPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 开停机时长分析 */}
-        <Card>
+        <AnimatedCard delay={0.30000000000000004}>
           <CardHeader>
             <CardTitle>开停机时长分析</CardTitle>
             <CardDescription>
@@ -480,11 +514,11 @@ export function MachineRunningDetailsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AnimatedListItem index={3} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 饼图 */}
               <div className="h-[300px] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                
+                  <UnifiedPieChart>
                     <Pie
                       data={getDurationAnalysisData()}
                       cx="50%"
@@ -505,14 +539,14 @@ export function MachineRunningDetailsPage() {
                       ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
+                  </UnifiedPieChart>
+                
               </div>
 
               {/* 统计数据 */}
-              <div className="space-y-4">
+              <AnimatedListItem index={1} className="space-y-4">
                 <h3 className="text-lg font-medium">时长统计</h3>
-                <div className="space-y-4">
+                <AnimatedListItem index={2} className="space-y-4">
                   {getDurationAnalysisData().map((item, index) => (
                     <div key={index} className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -548,10 +582,10 @@ export function MachineRunningDetailsPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 设备运行详细记录 */}
-        <Card>
+        <AnimatedCard delay={0.4}>
           <CardHeader>
             <CardTitle>设备运行详细记录</CardTitle>
             <CardDescription>
@@ -566,63 +600,24 @@ export function MachineRunningDetailsPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>记录时间</TableHead>
-                      <TableHead>操作动作</TableHead>
-                      <TableHead>设备状态</TableHead>
-                      <TableHead>操作人</TableHead>
-                      <TableHead>持续时间</TableHead>
-                      <TableHead>备注信息</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {machineRecords.map((record, index) => (
-                      <TableRow key={index} className="hover:bg-muted/50">
-                        <TableCell className="font-mono text-sm">
-                          {record.record_date_time}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={record.operation_action === '开机' ? 'default' : 'secondary'}
-                            className="flex items-center w-fit"
-                          >
-                            {record.operation_action === '开机' ?
-                              <CircleArrowUp className="h-3 w-3 mr-1" /> :
-                              <CircleArrowDown className="h-3 w-3 mr-1" />
-                            }
-                            {record.operation_action}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={record.operation_status === '正常运行' ? 'default' : 'outline'}
-                            className={cn(
-                              "flex items-center w-fit",
-                              record.operation_status === '正常运行' ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
-                            )}
-                          >
-                            <div className={cn(
-                              "w-2 h-2 rounded-full mr-2",
-                              record.operation_status === '正常运行' ? "bg-green-500" : "bg-amber-500"
-                            )}></div>
-                            {record.operation_status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {record.name}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {record.duration || '-'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {record.remarks || '-'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <PaginatedTable
+          data={record || []}
+          columns={columns || []}
+          title="设备运行详情"
+          description="设备运行状态详细监控"
+          searchable={true}
+          sortable={true}
+          pagination={{
+            page: 1,
+            pageSize: 20,
+            total: (record || []).length,
+            showSizeChanger: true,
+            showTotal: true,
+            pageSizeOptions: [10, 20, 50, 100]
+          }}
+          showActions={true}
+          emptyText="暂无数据"
+        />
 
                 {machineRecords.length === 0 && !loading && (
                   <div className="text-center py-8 text-muted-foreground">
@@ -634,7 +629,7 @@ export function MachineRunningDetailsPage() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </div>
   );

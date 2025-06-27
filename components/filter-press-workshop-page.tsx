@@ -27,7 +27,21 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
+import { FooterSignature } from "@/components/ui/footer-signature";
+import { useConfirmationDialog, CONFIRMATION_CONFIGS } from "@/components/ui/confirmation-dialog";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface FilterPressRecord {
   id?: string;
@@ -47,6 +61,13 @@ interface FilterPressRecordData {
 }
 
 export function FilterPressWorkshopPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('filter-press-workshop-page');
+  const { addTimer, addListener } = useMemoryLeak('filter-press-workshop-page');
+  const { metrics } = usePerformanceOptimization();
+  // 确认对话框
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
+
   const router = useRouter();
   const [recordDateTime, setRecordDateTime] = useState<Date>(new Date());
   const [shift, setShift] = useState<'早班' | '中班' | '夜班'>('早班');
@@ -212,7 +233,12 @@ export function FilterPressWorkshopPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="filter-press-workshop-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -240,17 +266,17 @@ export function FilterPressWorkshopPage() {
           className="space-y-8"
         >
           {/* 欢迎面板 */}
-          <Card>
+          <AnimatedCard delay={0}>
             <CardContent className="p-6">
               <div className="text-center">
                 <h2 className="text-xl font-semibold mb-2">欢迎使用压滤机数据记录系统</h2>
                 <p className="text-muted-foreground">当前操作员: {displayName} ({displayTitle})</p>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* 压滤机运行记录 */}
-          <Card>
+          <AnimatedCard delay={0.1}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <RotateCcw className="mr-2 h-5 w-5 text-primary" />
@@ -259,8 +285,8 @@ export function FilterPressWorkshopPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 周期计数显示 */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <AnimatedListItem index={0} className="grid grid-cols-2 gap-4">
+                <AnimatedListItem index={0} className="space-y-2">
                   <Label className="text-sm flex items-center">
                     <Lock className="mr-2 h-3 w-3 text-primary" />
                     当日周期数
@@ -271,7 +297,7 @@ export function FilterPressWorkshopPage() {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2">
+                <AnimatedListItem index={1} className="space-y-2">
                   <Label className="text-sm flex items-center">
                     <Lock className="mr-2 h-3 w-3 text-primary" />
                     当班周期数
@@ -285,14 +311,14 @@ export function FilterPressWorkshopPage() {
               </div>
               
               {/* 记录日期时间 */}
-              <div className="space-y-2">
+              <AnimatedListItem index={2} className="space-y-2">
                 <Label className="flex items-center">
                   <CalendarCheck className="mr-2 h-4 w-4 text-primary" />
                   记录日期时间
                 </Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
@@ -315,7 +341,7 @@ export function FilterPressWorkshopPage() {
               </div>
               
               {/* 班次选择 */}
-              <div className="space-y-2">
+              <AnimatedListItem index={3} className="space-y-2">
                 <Label className="flex items-center">
                   <CalendarCheck className="mr-2 h-4 w-4 text-primary" />
                   班次
@@ -337,12 +363,12 @@ export function FilterPressWorkshopPage() {
               </div>
 
               {/* 照片上传 */}
-              <div className="space-y-2">
+              <AnimatedListItem index={4} className="space-y-2">
                 <Label className="flex items-center">
                   <Image className="mr-2 h-4 w-4 text-primary" />
                   操作照片记录
                 </Label>
-                <div className="space-y-4">
+                <AnimatedListItem index={5} className="space-y-4">
                   {photoPreviewUrl ? (
                     <div className="relative">
                       <img 
@@ -350,7 +376,7 @@ export function FilterPressWorkshopPage() {
                         alt="预览" 
                         className="w-full h-48 object-cover rounded-lg border"
                       />
-                      <Button
+                      <AnimatedButton
                         variant="destructive"
                         size="icon"
                         className="absolute top-2 right-2"
@@ -389,8 +415,8 @@ export function FilterPressWorkshopPage() {
               </div>
               
               {/* 提交按钮 */}
-              <Button 
-                onClick={handleSubmitRecord} 
+              <AnimatedButton 
+                onClick={handleSubmitWithConfirmation} 
                 className={cn(
                   "w-full",
                   isSuccess && "bg-green-500 text-white hover:bg-green-600"
@@ -412,13 +438,13 @@ export function FilterPressWorkshopPage() {
 
               {/* 最近记录 */}
               {recentRecords.length > 0 && (
-                <div className="space-y-4">
+                <AnimatedListItem index={6} className="space-y-4">
                   <div className="text-sm text-muted-foreground flex items-center">
                     <span className="bg-primary/10 rounded-full w-1.5 h-1.5 mr-1.5"></span>
                     最近记录
                   </div>
                   <ScrollArea className="h-48">
-                    <div className="space-y-2">
+                    <AnimatedListItem index={7} className="space-y-2">
                       {recentRecords.map((record) => (
                         <Card key={record.id} className="p-3">
                           <div className="text-sm">
@@ -440,7 +466,7 @@ export function FilterPressWorkshopPage() {
                               )}
                             </div>
                           </div>
-                        </Card>
+                        </AnimatedCard>
                       ))}
                     </div>
                   </ScrollArea>
@@ -450,6 +476,10 @@ export function FilterPressWorkshopPage() {
           </Card>
         </motion.div>
       </div>
-    </div>
+
+      {/* 确认对话框 */}
+      <ConfirmationDialog />
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

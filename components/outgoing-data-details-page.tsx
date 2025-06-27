@@ -19,7 +19,23 @@ import {
   PieChart,
   Loader2
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
+import {
+  UnifiedChart,
+  TrendLineChart,
+  ComparisonBarChart,
+  UnifiedAreaChart,
+  UnifiedPieChart,
+  UnifiedComposedChart,
+  createChartConfig,
+  formatChartData,
+  calculateTrend
+} from "@/components/ui/unified-chart";
+import {
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -30,7 +46,20 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface OutgoingData {
   weight: number;
@@ -86,6 +115,10 @@ const COLORS = {
 };
 
 export function OutgoingDataDetailsPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('outgoing-data-details-page');
+  const { addTimer, addListener } = useMemoryLeak('outgoing-data-details-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   const [tab, setTab] = useState<'fdx' | 'jdxy' | 'diff'>('fdx');
   const [isLoading, setIsLoading] = useState(false);
@@ -237,7 +270,12 @@ export function OutgoingDataDetailsPage() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-background p-3 border rounded-lg shadow-lg text-sm">
+    <PerformanceWrapper
+      componentName="outgoing-data-details-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <div className="bg-background p-3 border rounded-lg shadow-lg text-sm">
           <p className="font-semibold mb-1">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="flex items-center">
@@ -245,8 +283,9 @@ export function OutgoingDataDetailsPage() {
               {entry.name}: {entry.value !== null ? entry.value.toFixed(2) : '无数据'}
             </p>
           ))}
-        </div>
-      );
+        </AnimatedPage>
+    </PerformanceWrapper>
+  );
     }
     return null;
   };
@@ -263,7 +302,7 @@ export function OutgoingDataDetailsPage() {
     const progressValue = (value / maxValue) * 100;
 
     return (
-      <Card className="overflow-hidden">
+      <AnimatedCard delay={0} className="overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center">
             <span className={`mr-2 ${color}`}>{icon}</span>
@@ -301,7 +340,7 @@ export function OutgoingDataDetailsPage() {
             <span className="text-xs text-muted-foreground">最大: {maxValue}</span>
           </div>
         </CardContent>
-      </Card>
+      </AnimatedCard>
     );
   };
 
@@ -315,7 +354,7 @@ export function OutgoingDataDetailsPage() {
     icon: React.ReactNode
   ) => {
     return (
-      <Card className="overflow-hidden">
+      <AnimatedCard delay={0.1} className="overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center">
             <span className="mr-2 text-primary">{icon}</span>
@@ -341,7 +380,7 @@ export function OutgoingDataDetailsPage() {
             </Badge>
           </div>
         </CardContent>
-      </Card>
+      </AnimatedCard>
     );
   };
 
@@ -349,7 +388,7 @@ export function OutgoingDataDetailsPage() {
   const renderCards = () => {
     if (tab === 'diff' && comparisonData) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {renderComparisonCard(
             "出厂吨位对比",
             comparisonData.fdx_wet_weight,
@@ -407,7 +446,7 @@ export function OutgoingDataDetailsPage() {
     const maxValues = tab === 'fdx' ? { weight: 500, moisture: 30, znGrade: 60, pbGrade: 30 } : { weight: 400, moisture: 25, znGrade: 20, pbGrade: 10 };
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <AnimatedListItem index={1} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {renderDataCard(
           "出厂吨位",
           currentData.weight,
@@ -449,9 +488,9 @@ export function OutgoingDataDetailsPage() {
     if (tab === 'diff') return null;
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <AnimatedListItem index={2} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 出厂吨位趋势图 */}
-        <Card>
+        <AnimatedCard delay={0.2}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">出厂吨位趋势</CardTitle>
           </CardHeader>
@@ -475,10 +514,10 @@ export function OutgoingDataDetailsPage() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 水分含量趋势图 */}
-        <Card>
+        <AnimatedCard delay={0.30000000000000004}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">水分含量趋势</CardTitle>
           </CardHeader>
@@ -502,10 +541,10 @@ export function OutgoingDataDetailsPage() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 锌品位趋势图 */}
-        <Card>
+        <AnimatedCard delay={0.4}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">锌品位趋势</CardTitle>
           </CardHeader>
@@ -529,10 +568,10 @@ export function OutgoingDataDetailsPage() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 铅品位趋势图 */}
-        <Card>
+        <AnimatedCard delay={0.5}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">铅品位趋势</CardTitle>
           </CardHeader>
@@ -556,13 +595,13 @@ export function OutgoingDataDetailsPage() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -580,7 +619,7 @@ export function OutgoingDataDetailsPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 状态指示器 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -593,7 +632,7 @@ export function OutgoingDataDetailsPage() {
         </div>
 
         {/* 日期选择卡片 */}
-        <Card>
+        <AnimatedCard delay={0.6000000000000001}>
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <span>选择日期</span>
@@ -607,7 +646,7 @@ export function OutgoingDataDetailsPage() {
           <CardContent>
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
               <PopoverTrigger asChild>
-                <Button
+                <AnimatedButton
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
@@ -638,7 +677,7 @@ export function OutgoingDataDetailsPage() {
               </PopoverContent>
             </Popover>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 标签页切换 */}
         <Tabs value={tab} onValueChange={(value: 'fdx' | 'jdxy' | 'diff') => setTab(value)}>
@@ -651,7 +690,7 @@ export function OutgoingDataDetailsPage() {
           <TabsContent value="fdx" className="space-y-6">
             {/* 出货单位选择 */}
             {outgoingUnits.length > 0 && (
-              <Card>
+              <AnimatedCard delay={0.7000000000000001}>
                 <CardHeader>
                   <CardTitle className="text-sm font-medium flex items-center justify-between">
                     <span>出货单位</span>
@@ -678,7 +717,7 @@ export function OutgoingDataDetailsPage() {
                     当前显示: {selectedOutgoingUnit}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             )}
 
             {renderCards()}
@@ -694,18 +733,18 @@ export function OutgoingDataDetailsPage() {
             {renderCards()}
 
             {/* 数据对比说明 */}
-            <Card>
+            <AnimatedCard delay={0.8}>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">数据对比说明</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-sm text-muted-foreground space-y-2">
+                <AnimatedListItem index={1} className="text-sm text-muted-foreground space-y-2">
                   <p>• 正值表示富鼎翔数据高于金鼎锌业数据</p>
                   <p>• 负值表示富鼎翔数据低于金鼎锌业数据</p>
                   <p>• 数据来源于当日实际生产记录</p>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
         </Tabs>
 

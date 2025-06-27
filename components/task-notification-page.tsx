@@ -63,10 +63,23 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLoading, TableSkeletonLoading } from "@/components/loading-transition";
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface TaskNotification {
   id: string;
@@ -101,6 +114,10 @@ interface NotificationStats {
 }
 
 export function TaskNotificationPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('task-notification-page');
+  const { addTimer, addListener } = useMemoryLeak('task-notification-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 状态管理
@@ -376,7 +393,12 @@ export function TaskNotificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="task-notification-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -394,9 +416,9 @@ export function TaskNotificationPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 欢迎面板 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-lg font-medium mb-2">通知中心</h2>
@@ -405,24 +427,16 @@ export function TaskNotificationPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 统计面板 */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index}>
-                <CardContent className="p-4">
-                  <Skeleton className="h-4 w-16 mb-2" />
-                  <Skeleton className="h-8 w-12 mb-1" />
-                  <Skeleton className="h-3 w-20" />
-                </CardContent>
-              </Card>
-            ))}
+          <AnimatedListItem index={0} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <SkeletonLoading rows={6} />
           </div>
         ) : notificationStats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Card>
+          <AnimatedListItem index={1} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <AnimatedCard delay={0.1}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Bell className="h-4 w-4 text-blue-600 mr-1" />
@@ -431,9 +445,9 @@ export function TaskNotificationPage() {
                 <div className="text-2xl font-bold text-blue-600">{notificationStats.total_notifications}</div>
                 <p className="text-xs text-muted-foreground">全部通知</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.2}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <BellRing className="h-4 w-4 text-red-600 mr-1" />
@@ -442,9 +456,9 @@ export function TaskNotificationPage() {
                 <div className="text-2xl font-bold text-red-600">{notificationStats.unread_notifications}</div>
                 <p className="text-xs text-muted-foreground">待处理</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.30000000000000004}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Eye className="h-4 w-4 text-green-600 mr-1" />
@@ -453,9 +467,9 @@ export function TaskNotificationPage() {
                 <div className="text-2xl font-bold text-green-600">{notificationStats.read_notifications}</div>
                 <p className="text-xs text-muted-foreground">已查看</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.4}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Star className="h-4 w-4 text-yellow-600 mr-1" />
@@ -464,9 +478,9 @@ export function TaskNotificationPage() {
                 <div className="text-2xl font-bold text-yellow-600">{notificationStats.starred_notifications}</div>
                 <p className="text-xs text-muted-foreground">重要消息</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.5}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Archive className="h-4 w-4 text-gray-600 mr-1" />
@@ -475,9 +489,9 @@ export function TaskNotificationPage() {
                 <div className="text-2xl font-bold text-gray-600">{notificationStats.archived_notifications}</div>
                 <p className="text-xs text-muted-foreground">已归档</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.6000000000000001}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <AlertTriangle className="h-4 w-4 text-red-600 mr-1" />
@@ -486,7 +500,7 @@ export function TaskNotificationPage() {
                 <div className="text-2xl font-bold text-red-600">{notificationStats.urgent_notifications}</div>
                 <p className="text-xs text-muted-foreground">需立即处理</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </div>
         )}
 
@@ -502,10 +516,10 @@ export function TaskNotificationPage() {
           {/* 收件箱标签页 */}
           <TabsContent value="inbox" className="space-y-6">
             {/* 搜索和筛选 */}
-            <Card>
+            <AnimatedCard delay={0.7000000000000001}>
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                  <div className="space-y-2">
+                <AnimatedListItem index={2} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                  <AnimatedListItem index={1} className="space-y-2">
                     <Label htmlFor="search">搜索</Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -519,7 +533,7 @@ export function TaskNotificationPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={2} className="space-y-2">
                     <Label>类型</Label>
                     <Select value={typeFilter} onValueChange={setTypeFilter}>
                       <SelectTrigger>
@@ -538,7 +552,7 @@ export function TaskNotificationPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={3} className="space-y-2">
                     <Label>状态</Label>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger>
@@ -554,7 +568,7 @@ export function TaskNotificationPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={4} className="space-y-2">
                     <Label>优先级</Label>
                     <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                       <SelectTrigger>
@@ -570,7 +584,7 @@ export function TaskNotificationPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={5} className="space-y-2">
                     <Label>发送人</Label>
                     <Select value={senderFilter} onValueChange={setSenderFilter}>
                       <SelectTrigger>
@@ -585,7 +599,7 @@ export function TaskNotificationPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={6} className="space-y-2">
                     <Label>操作</Label>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" onClick={loadData}>
@@ -598,10 +612,10 @@ export function TaskNotificationPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* 通知列表 */}
-            <Card>
+            <AnimatedCard delay={0.8}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>通知列表 ({filteredNotifications.length})</span>
@@ -619,29 +633,9 @@ export function TaskNotificationPage() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 6 }).map((_, index) => (
-                      <div key={index} className="p-4 border rounded">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1">
-                            <Skeleton className="h-5 w-3/4 mb-2" />
-                            <Skeleton className="h-4 w-full mb-2" />
-                            <Skeleton className="h-4 w-2/3" />
-                          </div>
-                          <Skeleton className="h-6 w-16 ml-4" />
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <div className="flex space-x-2">
-                            <Skeleton className="h-6 w-16" />
-                            <Skeleton className="h-6 w-16" />
-                          </div>
-                          <Skeleton className="h-4 w-24" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <SkeletonLoading rows={6} />
                 ) : filteredNotifications.length > 0 ? (
-                  <div className="space-y-4">
+                  <AnimatedListItem index={7} className="space-y-4">
                     {filteredNotifications.map((notification) => (
                       <div
                         key={notification.id}
@@ -753,12 +747,12 @@ export function TaskNotificationPage() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 星标标签页 */}
           <TabsContent value="starred" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={0.9}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Star className="h-5 w-5 mr-2 text-yellow-600" />
@@ -767,23 +761,9 @@ export function TaskNotificationPage() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 3 }).map((_, index) => (
-                      <div key={index} className="p-4 border rounded">
-                        <Skeleton className="h-5 w-3/4 mb-3" />
-                        <Skeleton className="h-4 w-full mb-2" />
-                        <div className="flex justify-between items-center">
-                          <div className="flex space-x-2">
-                            <Skeleton className="h-6 w-16" />
-                            <Skeleton className="h-6 w-16" />
-                          </div>
-                          <Skeleton className="h-4 w-24" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <SkeletonLoading rows={3} />
                 ) : notifications.filter(n => n.status === 'starred').length > 0 ? (
-                  <div className="space-y-4">
+                  <AnimatedListItem index={8} className="space-y-4">
                     {notifications.filter(n => n.status === 'starred').map((notification) => (
                       <div key={notification.id} className="p-4 border rounded hover:bg-muted/50 transition-colors">
                         <div className="flex justify-between items-start mb-3">
@@ -834,12 +814,12 @@ export function TaskNotificationPage() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 归档标签页 */}
           <TabsContent value="archived" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={1}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Archive className="h-5 w-5 mr-2 text-gray-600" />
@@ -855,14 +835,14 @@ export function TaskNotificationPage() {
                   </p>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 统计分析标签页 */}
           <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnimatedListItem index={3} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 通知类型统计 */}
-              <Card>
+              <AnimatedCard delay={1.1}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <PieChart className="h-5 w-5 mr-2" />
@@ -870,7 +850,7 @@ export function TaskNotificationPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={9} className="space-y-4">
                     {['task_assigned', 'task_updated', 'task_completed', 'task_overdue', 'reminder', 'system', 'announcement'].map((type) => {
                       const count = notifications.filter(n => n.type === type).length;
                       const percentage = notifications.length > 0 ? (count / notifications.length) * 100 : 0;
@@ -886,10 +866,10 @@ export function TaskNotificationPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 优先级分布 */}
-              <Card>
+              <AnimatedCard delay={1.2000000000000002}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <BarChart3 className="h-5 w-5 mr-2" />
@@ -897,7 +877,7 @@ export function TaskNotificationPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={10} className="space-y-4">
                     {['urgent', 'high', 'medium', 'low'].map((priority) => {
                       const count = notifications.filter(n => n.priority === priority).length;
                       const percentage = notifications.length > 0 ? (count / notifications.length) * 100 : 0;
@@ -913,10 +893,10 @@ export function TaskNotificationPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 发送人统计 */}
-              <Card>
+              <AnimatedCard delay={1.3}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Users className="h-5 w-5 mr-2" />
@@ -924,7 +904,7 @@ export function TaskNotificationPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={11} className="space-y-4">
                     {Array.from(new Set(notifications.map(n => n.sender))).map((sender) => {
                       const count = notifications.filter(n => n.sender === sender).length;
                       const percentage = notifications.length > 0 ? (count / notifications.length) * 100 : 0;
@@ -940,10 +920,10 @@ export function TaskNotificationPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 处理状态统计 */}
-              <Card>
+              <AnimatedCard delay={1.4000000000000001}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <TrendingUp className="h-5 w-5 mr-2" />
@@ -951,8 +931,8 @@ export function TaskNotificationPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
+                  <AnimatedListItem index={12} className="space-y-4">
+                    <AnimatedListItem index={13} className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">需要操作的通知</span>
                         <span className="text-sm text-muted-foreground">
@@ -965,7 +945,7 @@ export function TaskNotificationPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={14} className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">已逾期通知</span>
                         <span className="text-sm text-muted-foreground">
@@ -978,7 +958,7 @@ export function TaskNotificationPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={15} className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">今日通知</span>
                         <span className="text-sm text-muted-foreground">
@@ -1000,11 +980,12 @@ export function TaskNotificationPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

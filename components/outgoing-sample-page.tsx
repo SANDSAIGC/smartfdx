@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, memo } from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { WorkspaceNavigation } from "@/components/workspace-navigation";
+import { OutgoingSampleHeader } from "@/components/sample-page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,16 +15,24 @@ import {
   DialogTrigger,
   DialogClose
 } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { DatePicker } from "@/components/ui/unified-date-picker";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import {
+import { FooterSignature } from "@/components/ui/footer-signature";
+import { useConfirmationDialog, CONFIRMATION_CONFIGS } from "@/components/ui/confirmation-dialog";
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
+import { LoadingTransition, SkeletonLoading } from "@/components/loading-transition";
   CalendarIcon,
   Calculator,
   Save,
@@ -81,6 +88,15 @@ const initialGradeData: GradeCalculatorData = {
 };
 
 export const OutgoingSamplePage = memo(() => {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('OutgoingSamplePage');
+  const { addTimer, addListener } = useMemoryLeak('OutgoingSamplePage');
+  const { metrics } = usePerformanceOptimization();
+  // 确认对话框
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
+
+
+
   // 状态管理
   const [formData, setFormData] = useState<OutgoingSampleFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -249,26 +265,41 @@ export const OutgoingSamplePage = memo(() => {
       setIsSubmitting(false);
     }
   }, [formData, validateForm]);
+  // submit操作确认包装
+  const handleSubmitWithConfirmation = useCallback(() => {
+    showConfirmation(
+      CONFIRMATION_CONFIGS.SUBMIT_SAMPLE_DATA,
+      handleSubmit
+    );
+  }, [showConfirmation, handleSubmit]);
+
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* 顶部导航 */}
-      <div className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <WorkspaceNavigation />
-            <Package className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">出厂样记录</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <ThemeToggle />
-          </div>
-        </div>
-      </div>
+
+
+    <PerformanceWrapper
+
+
+      componentName="OutgoingSamplePage"
+
+
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+
+
+      enableMemoryTracking={true}
+
+
+    >
+      <AnimatedPage className="min-h-screen bg-background">
+      {/* 统一标题栏 */}
+      <OutgoingSampleHeader
+        showStatus={true}
+        status={submitStatus === 'success' ? 'completed' : submitStatus === 'error' ? 'draft' : 'draft'}
+      />
 
       {/* 主要内容 */}
       <div className="container mx-auto px-4 py-6">
-        <Card className="max-w-4xl mx-auto">
+        <AnimatedCard delay={0} className="max-w-4xl mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Package className="h-5 w-5" />
@@ -280,50 +311,29 @@ export const OutgoingSamplePage = memo(() => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* 基础信息 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* 日期选择 */}
-              <div className="space-y-2">
+              <AnimatedListItem index={0} className="space-y-2">
                 <Label htmlFor="date">日期</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !formData.date && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.date ? (
-                        format(formData.date, "yyyy年MM月dd日", { locale: zhCN })
-                      ) : (
-                        <span>选择日期</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.date}
-                      onSelect={(date) => updateFormField('date', date)}
-                      initialFocus
-                      locale={zhCN}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <DatePicker
+                  mode="single"
+                  value={formData.date}
+                  onChange={(date) => updateFormField('date', date)}
+                  placeholder="选择日期"
+                />
               </div>
             </div>
 
             {/* 化验数据 */}
-            <div className="space-y-4">
+            <AnimatedListItem index={1} className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center space-x-2">
                 <Droplets className="h-5 w-5" />
                 <span>化验数据</span>
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <AnimatedListItem index={1} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* 水份 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={2} className="space-y-2">
                   <Label htmlFor="moisture">水份 (%)</Label>
                   <div className="flex space-x-2">
                     <Input
@@ -336,7 +346,7 @@ export const OutgoingSamplePage = memo(() => {
                     />
                     <Dialog open={moistureDialogOpen} onOpenChange={setMoistureDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="icon">
+                        <AnimatedButton variant="outline" size="icon">
                           <Calculator className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
@@ -344,8 +354,8 @@ export const OutgoingSamplePage = memo(() => {
                         <DialogHeader>
                           <DialogTitle>水份计算器</DialogTitle>
                         </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
+                        <AnimatedListItem index={3} className="space-y-4">
+                          <AnimatedListItem index={4} className="space-y-2">
                             <Label htmlFor="wetWeight">湿重 (g)</Label>
                             <Input
                               id="wetWeight"
@@ -358,7 +368,7 @@ export const OutgoingSamplePage = memo(() => {
                               }))}
                             />
                           </div>
-                          <div className="space-y-2">
+                          <AnimatedListItem index={5} className="space-y-2">
                             <Label htmlFor="tareWeight">皮重 (g)</Label>
                             <Input
                               id="tareWeight"
@@ -371,7 +381,7 @@ export const OutgoingSamplePage = memo(() => {
                               }))}
                             />
                           </div>
-                          <div className="space-y-2">
+                          <AnimatedListItem index={6} className="space-y-2">
                             <Label htmlFor="dryWeight">干重 (g)</Label>
                             <Input
                               id="dryWeight"
@@ -391,9 +401,9 @@ export const OutgoingSamplePage = memo(() => {
                           )}
                           <div className="flex justify-end space-x-2">
                             <DialogClose asChild>
-                              <Button variant="outline">取消</Button>
+                              <AnimatedButton variant="outline">取消</Button>
                             </DialogClose>
-                            <Button
+                            <AnimatedButton
                               onClick={applyMoistureCalculation}
                               disabled={!calculateMoisture()}
                             >
@@ -407,7 +417,7 @@ export const OutgoingSamplePage = memo(() => {
                 </div>
 
                 {/* Pb品位 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={7} className="space-y-2">
                   <Label htmlFor="pbGrade">Pb品位 (%)</Label>
                   <div className="flex space-x-2">
                     <Input
@@ -420,7 +430,7 @@ export const OutgoingSamplePage = memo(() => {
                     />
                     <Dialog open={gradeDialogOpen} onOpenChange={setGradeDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button
+                        <AnimatedButton
                           variant="outline"
                           size="icon"
                           onClick={() => openGradeCalculator('pbGrade')}
@@ -432,8 +442,8 @@ export const OutgoingSamplePage = memo(() => {
                         <DialogHeader>
                           <DialogTitle>品位计算器</DialogTitle>
                         </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
+                        <AnimatedListItem index={8} className="space-y-4">
+                          <AnimatedListItem index={9} className="space-y-2">
                             <Label htmlFor="edtaConsumption">EDTA消耗量 (mL)</Label>
                             <Input
                               id="edtaConsumption"
@@ -446,7 +456,7 @@ export const OutgoingSamplePage = memo(() => {
                               }))}
                             />
                           </div>
-                          <div className="space-y-2">
+                          <AnimatedListItem index={10} className="space-y-2">
                             <Label htmlFor="edtaConcentration">EDTA浓度 (mol/L)</Label>
                             <Input
                               id="edtaConcentration"
@@ -459,7 +469,7 @@ export const OutgoingSamplePage = memo(() => {
                               }))}
                             />
                           </div>
-                          <div className="space-y-2">
+                          <AnimatedListItem index={11} className="space-y-2">
                             <Label htmlFor="sampleWeight">样品质量 (g)</Label>
                             <Input
                               id="sampleWeight"
@@ -479,9 +489,9 @@ export const OutgoingSamplePage = memo(() => {
                           )}
                           <div className="flex justify-end space-x-2">
                             <DialogClose asChild>
-                              <Button variant="outline">取消</Button>
+                              <AnimatedButton variant="outline">取消</Button>
                             </DialogClose>
-                            <Button
+                            <AnimatedButton
                               onClick={applyGradeCalculation}
                               disabled={!calculateGrade()}
                             >
@@ -495,7 +505,7 @@ export const OutgoingSamplePage = memo(() => {
                 </div>
 
                 {/* Zn品位 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={12} className="space-y-2">
                   <Label htmlFor="znGrade">Zn品位 (%)</Label>
                   <div className="flex space-x-2">
                     <Input
@@ -506,7 +516,7 @@ export const OutgoingSamplePage = memo(() => {
                       onChange={(e) => handleNumberInput('znGrade', e.target.value)}
                       className="flex-1"
                     />
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       size="icon"
                       onClick={() => openGradeCalculator('znGrade')}
@@ -519,7 +529,7 @@ export const OutgoingSamplePage = memo(() => {
             </div>
 
             {/* 备注 */}
-            <div className="space-y-2">
+            <AnimatedListItem index={13} className="space-y-2">
               <Label htmlFor="remarks">备注</Label>
               <Textarea
                 id="remarks"
@@ -547,8 +557,8 @@ export const OutgoingSamplePage = memo(() => {
 
             {/* 提交按钮 */}
             <div className="flex justify-end">
-              <Button
-                onClick={handleSubmit}
+              <AnimatedButton
+                onClick={handleSubmitWithConfirmation}
                 disabled={isSubmitting}
                 className="min-w-[120px]"
               >
@@ -566,9 +576,17 @@ export const OutgoingSamplePage = memo(() => {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
-    </div>
+      </div>
+
+      {/* 确认对话框 */}
+
+
+      <ConfirmationDialog />
+
+
+    </PerformanceWrapper>
   );
 });
 

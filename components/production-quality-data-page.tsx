@@ -33,9 +33,35 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLoading, TableSkeletonLoading } from "@/components/loading-transition";
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+import { FooterSignature } from "@/components/ui/footer-signature";
+import { useConfirmationDialog, CONFIRMATION_CONFIGS } from "@/components/ui/confirmation-dialog";
+import {
+  UnifiedChart,
+  TrendLineChart,
+  ComparisonBarChart,
+  UnifiedAreaChart,
+  UnifiedPieChart,
+  UnifiedComposedChart,
+  createChartConfig,
+  formatChartData,
+  calculateTrend
+} from "@/components/ui/unified-chart";
+import {
+  AnimatedPage,
+  AnimatedCard,
+  AnimatedContainer,
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 import {
   LineChart,
   Line,
@@ -87,6 +113,13 @@ interface TrendData {
 }
 
 export function ProductionQualityDataPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('production-quality-data-page');
+  const { addTimer, addListener } = useMemoryLeak('production-quality-data-page');
+  const { metrics } = usePerformanceOptimization();
+  // 确认对话框
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
+
   const router = useRouter();
   
   // 状态管理
@@ -259,7 +292,12 @@ export function ProductionQualityDataPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="production-quality-data-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -277,9 +315,9 @@ export function ProductionQualityDataPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 欢迎面板 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-lg font-medium mb-2">生产质量数据监控</h2>
@@ -288,13 +326,13 @@ export function ProductionQualityDataPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 选项卡 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
-              <BarChart3 className="h-4 w-4" />
+              <ComparisonBarChart3 className="h-4 w-4" />
               <span>质量概览</span>
             </TabsTrigger>
             <TabsTrigger value="trends" className="flex items-center space-x-2">
@@ -310,20 +348,12 @@ export function ProductionQualityDataPage() {
           {/* 质量概览选项卡 */}
           <TabsContent value="overview" className="space-y-6">
             {/* 质量指标卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {loading ? (
-                Array.from({ length: 4 }).map((_, index) => (
-                  <Card key={index}>
-                    <CardContent className="pt-6">
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-8 w-3/4 mb-2" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </CardContent>
-                  </Card>
-                ))
+                <SkeletonLoading rows={4} />
               ) : (
                 qualityMetrics.map((metric) => (
-                  <Card key={metric.id}>
+                  <AnimatedCard delay={0.1} key={metric.id}>
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium text-muted-foreground">
@@ -357,13 +387,13 @@ export function ProductionQualityDataPage() {
                          metric.status === 'warning' ? '警告' : '异常'}
                       </Badge>
                     </CardContent>
-                  </Card>
+                  </AnimatedCard>
                 ))
               )}
             </div>
 
             {/* 质量分布图 */}
-            <Card>
+            <AnimatedCard delay={0.2}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <BarChart3 className="h-5 w-5 mr-2" />
@@ -372,9 +402,9 @@ export function ProductionQualityDataPage() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <Skeleton className="h-64 w-full" />
+                  <SkeletonLoading rows={1} />
                 ) : (
-                  <ResponsiveContainer width="100%" height={300}>
+                  
                     <BarChart data={qualityMetrics}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
@@ -383,16 +413,16 @@ export function ProductionQualityDataPage() {
                       <Legend />
                       <Bar dataKey="value" fill="#8884d8" name="实际值" />
                       <Bar dataKey="target" fill="#82ca9d" name="目标值" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                    </ComparisonBarChart>
+                  
                 )}
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 趋势分析选项卡 */}
           <TabsContent value="trends" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={0.30000000000000004}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <TrendingUp className="h-5 w-5 mr-2" />
@@ -401,7 +431,7 @@ export function ProductionQualityDataPage() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <Skeleton className="h-80 w-full" />
+                  <SkeletonLoading rows={1} />
                 ) : (
                   <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={trendData}>
@@ -442,11 +472,11 @@ export function ProductionQualityDataPage() {
                   </ResponsiveContainer>
                 )}
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* 质量分析摘要 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
+            <AnimatedListItem index={1} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <AnimatedCard delay={0.4}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Target className="h-5 w-5 mr-2" />
@@ -454,7 +484,7 @@ export function ProductionQualityDataPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={1} className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-sm">锌品位达标率</span>
                       <div className="flex items-center space-x-2">
@@ -485,9 +515,9 @@ export function ProductionQualityDataPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
-              <Card>
+              <AnimatedCard delay={0.5}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <AlertTriangle className="h-5 w-5 mr-2" />
@@ -495,7 +525,7 @@ export function ProductionQualityDataPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <AnimatedListItem index={2} className="space-y-3">
                     <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
                       <AlertTriangle className="h-5 w-5 text-yellow-600" />
                       <div>
@@ -519,13 +549,13 @@ export function ProductionQualityDataPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
 
           {/* 质量记录选项卡 */}
           <TabsContent value="records" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={0.6000000000000001}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center">
                   <FileText className="h-5 w-5 mr-2" />
@@ -545,15 +575,9 @@ export function ProductionQualityDataPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <AnimatedListItem index={3} className="space-y-4">
                   {loading ? (
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <div key={index} className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                      </div>
-                    ))
+                    <SkeletonLoading rows={5} />
                   ) : qualityRecords.length > 0 ? (
                     qualityRecords.map((record) => (
                       <div key={record.id} className="p-4 border rounded-lg space-y-3">
@@ -579,7 +603,7 @@ export function ProductionQualityDataPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <AnimatedListItem index={2} className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">锌品位</p>
                             <p className="font-medium">{record.zinc_grade.toFixed(2)}%</p>
@@ -623,128 +647,34 @@ export function ProductionQualityDataPage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
         </Tabs>
 
         {/* 底部操作栏 */}
-        <Card>
+        <AnimatedCard delay={0.7000000000000001}>
           <CardContent className="pt-6">
             <div className="flex justify-center space-x-4">
-              <Button variant="outline" onClick={() => router.push('/quality-settings')}>
+              <AnimatedButton variant="outline" onClick={() => router.push('/quality-settings')}>
                 <Settings className="h-4 w-4 mr-2" />
                 质量设置
               </Button>
-              <Button variant="outline" onClick={handleExportData}>
+              <AnimatedButton variant="outline" onClick={handleExportWithConfirmation}>
                 <Download className="h-4 w-4 mr-2" />
                 导出报告
               </Button>
-              <Button onClick={() => router.push('/quality-analysis')}>
+              <AnimatedButton onClick={() => router.push('/quality-analysis')}>
                 <BarChart3 className="h-4 w-4 mr-2" />
                 深度分析
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
-    </div>
+
+      {/* 确认对话框 */}
+      <ConfirmationDialog />
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
-}
-
-        {/* 筛选控件 */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* 日期选择 */}
-              <div className="space-y-2">
-                <Label>选择日期</Label>
-                <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !selectedDate && "text-muted-foreground"
-                      )}
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "yyyy-MM-dd") : "选择日期"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => {
-                        if (date) {
-                          setSelectedDate(date);
-                          setIsDatePickerOpen(false);
-                        }
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* 班次选择 */}
-              <div className="space-y-2">
-                <Label>班次</Label>
-                <Select value={selectedShift} onValueChange={setSelectedShift}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="选择班次" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部班次</SelectItem>
-                    <SelectItem value="早班">早班</SelectItem>
-                    <SelectItem value="夜班">夜班</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* 产品类型选择 */}
-              <div className="space-y-2">
-                <Label>产品类型</Label>
-                <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="选择产品" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部产品</SelectItem>
-                    <SelectItem value="精矿A">精矿A</SelectItem>
-                    <SelectItem value="精矿B">精矿B</SelectItem>
-                    <SelectItem value="精矿C">精矿C</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* 操作按钮 */}
-              <div className="space-y-2">
-                <Label>操作</Label>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={loadData}
-                    disabled={loading}
-                    className="flex-1"
-                  >
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExportData}
-                    className="flex-1"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+}>

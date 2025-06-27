@@ -16,18 +16,48 @@ import {
   BarChart3,
   PieChart
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
+import {
+  UnifiedChart,
+  TrendLineChart,
+  ComparisonBarChart,
+  UnifiedAreaChart,
+  UnifiedPieChart,
+  UnifiedComposedChart,
+  createChartConfig,
+  formatChartData,
+  calculateTrend
+} from "@/components/ui/unified-chart";
+import {
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Table, TableHeader, TableRow, TableHead, TableCell, TableBody } from "@/components/ui/table";
+import { PaginatedTable, ColumnConfig } from "@/components/ui/paginated-table";
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface SampleData {
   id: string;
@@ -60,6 +90,10 @@ const COLORS = {
 };
 
 export function FilterPressDataDetailsPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('filter-press-data-details-page');
+  const { addTimer, addListener } = useMemoryLeak('filter-press-data-details-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   const [tab, setTab] = useState('filter');
   const [isLoading, setIsLoading] = useState(false);
@@ -167,7 +201,12 @@ export function FilterPressDataDetailsPage() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-background p-3 border rounded-lg shadow-lg text-sm">
+    <PerformanceWrapper
+      componentName="filter-press-data-details-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <div className="bg-background p-3 border rounded-lg shadow-lg text-sm">
           <p className="font-semibold mb-1">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="flex items-center">
@@ -175,8 +214,9 @@ export function FilterPressDataDetailsPage() {
               {entry.name}: {entry.value !== null ? entry.value.toFixed(2) : '无数据'}
             </p>
           ))}
-        </div>
-      );
+        </AnimatedPage>
+    </PerformanceWrapper>
+  );
     }
     return null;
   };
@@ -224,9 +264,9 @@ export function FilterPressDataDetailsPage() {
   // 渲染数据卡片
   const renderCards = () => {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* 压滤板数量卡片 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <BarChart3 className="mr-2 h-4 w-4 text-primary" />
@@ -259,10 +299,10 @@ export function FilterPressDataDetailsPage() {
             <Progress value={(filterCycles / 50) * 100} className="h-2" />
             <p className="text-xs text-muted-foreground mt-2">板/日</p>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 水分含量卡片 */}
-        <Card>
+        <AnimatedCard delay={0.1}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <PieChart className="mr-2 h-4 w-4 text-blue-500" />
@@ -297,10 +337,10 @@ export function FilterPressDataDetailsPage() {
               {renderSamplesTable(znSamples, 'moisture')}
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 锌品位卡片 */}
-        <Card>
+        <AnimatedCard delay={0.2}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <TrendingUp className="mr-2 h-4 w-4 text-green-500" />
@@ -335,10 +375,10 @@ export function FilterPressDataDetailsPage() {
               {renderSamplesTable(znSamples, 'zn')}
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 铅品位卡片 */}
-        <Card>
+        <AnimatedCard delay={0.30000000000000004}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <TrendingUp className="mr-2 h-4 w-4 text-yellow-500" />
@@ -373,7 +413,7 @@ export function FilterPressDataDetailsPage() {
               {renderSamplesTable(pbSamples, 'pb')}
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     );
   };
@@ -381,9 +421,9 @@ export function FilterPressDataDetailsPage() {
   // 渲染趋势图
   const renderTrendCharts = () => {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <AnimatedListItem index={1} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 压滤板数量趋势图 */}
-        <Card>
+        <AnimatedCard delay={0.4}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">压滤板数量趋势</CardTitle>
           </CardHeader>
@@ -407,10 +447,10 @@ export function FilterPressDataDetailsPage() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 水分含量趋势图 */}
-        <Card>
+        <AnimatedCard delay={0.5}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">水分含量趋势</CardTitle>
           </CardHeader>
@@ -434,10 +474,10 @@ export function FilterPressDataDetailsPage() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 锌品位趋势图 */}
-        <Card>
+        <AnimatedCard delay={0.6000000000000001}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">锌品位趋势</CardTitle>
           </CardHeader>
@@ -461,10 +501,10 @@ export function FilterPressDataDetailsPage() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 铅品位趋势图 */}
-        <Card>
+        <AnimatedCard delay={0.7000000000000001}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">铅品位趋势</CardTitle>
           </CardHeader>
@@ -488,13 +528,13 @@ export function FilterPressDataDetailsPage() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -533,7 +573,7 @@ export function FilterPressDataDetailsPage() {
           </div>
 
           {/* 日期选择卡片 */}
-          <Card>
+          <AnimatedCard delay={0.8}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <CalendarIcon className="mr-2 h-5 w-5" />
@@ -543,7 +583,7 @@ export function FilterPressDataDetailsPage() {
             <CardContent>
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
-                  <Button 
+                  <AnimatedButton 
                     variant="outline" 
                     className={cn(
                       "w-full justify-start text-left font-normal",
@@ -580,7 +620,7 @@ export function FilterPressDataDetailsPage() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* 标签页切换 */}
           <Tabs value={tab} onValueChange={setTab} className="w-full">

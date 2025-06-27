@@ -45,10 +45,23 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CardSkeletonLoading, SkeletonLoading } from "@/components/loading-transition";
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface Situation {
   id: string;
@@ -85,6 +98,10 @@ interface SituationStats {
 }
 
 export function SituationManagementPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('situation-management-page');
+  const { addTimer, addListener } = useMemoryLeak('situation-management-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 状态管理
@@ -320,7 +337,12 @@ export function SituationManagementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="situation-management-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -338,9 +360,9 @@ export function SituationManagementPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 欢迎面板 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-lg font-medium mb-2">情况管理中心</h2>
@@ -349,24 +371,14 @@ export function SituationManagementPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 统计面板 */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index}>
-                <CardContent className="p-4">
-                  <Skeleton className="h-4 w-16 mb-2" />
-                  <Skeleton className="h-8 w-12 mb-1" />
-                  <Skeleton className="h-3 w-20" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <CardSkeletonLoading cards={6} />
         ) : situationStats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Card>
+          <AnimatedListItem index={0} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <AnimatedCard delay={0.1}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <FileText className="h-4 w-4 text-blue-600 mr-1" />
@@ -375,9 +387,9 @@ export function SituationManagementPage() {
                 <div className="text-2xl font-bold text-blue-600">{situationStats.total_situations}</div>
                 <p className="text-xs text-muted-foreground">全部情况</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.2}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <AlertTriangle className="h-4 w-4 text-red-600 mr-1" />
@@ -386,9 +398,9 @@ export function SituationManagementPage() {
                 <div className="text-2xl font-bold text-red-600">{situationStats.open_situations}</div>
                 <p className="text-xs text-muted-foreground">需要处理</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.30000000000000004}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Clock className="h-4 w-4 text-yellow-600 mr-1" />
@@ -397,9 +409,9 @@ export function SituationManagementPage() {
                 <div className="text-2xl font-bold text-yellow-600">{situationStats.in_progress_situations}</div>
                 <p className="text-xs text-muted-foreground">正在处理</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.4}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
@@ -408,9 +420,9 @@ export function SituationManagementPage() {
                 <div className="text-2xl font-bold text-green-600">{situationStats.resolved_situations}</div>
                 <p className="text-xs text-muted-foreground">处理完成</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.5}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Zap className="h-4 w-4 text-red-600 mr-1" />
@@ -419,9 +431,9 @@ export function SituationManagementPage() {
                 <div className="text-2xl font-bold text-red-600">{situationStats.urgent_situations}</div>
                 <p className="text-xs text-muted-foreground">紧急情况</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.6000000000000001}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Flag className="h-4 w-4 text-orange-600 mr-1" />
@@ -430,7 +442,7 @@ export function SituationManagementPage() {
                 <div className="text-2xl font-bold text-orange-600">{situationStats.overdue_situations}</div>
                 <p className="text-xs text-muted-foreground">超期未处理</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </div>
         )}
 
@@ -445,9 +457,9 @@ export function SituationManagementPage() {
 
           {/* 概览标签页 */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnimatedListItem index={1} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 最新情况 */}
-              <Card>
+              <AnimatedCard delay={0.7000000000000001}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Bell className="h-5 w-5 mr-2" />
@@ -456,17 +468,9 @@ export function SituationManagementPage() {
                 </CardHeader>
                 <CardContent>
                   {loading ? (
-                    <div className="space-y-3">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <div key={index} className="p-3 border rounded">
-                          <Skeleton className="h-4 w-3/4 mb-2" />
-                          <Skeleton className="h-3 w-1/2 mb-1" />
-                          <Skeleton className="h-3 w-1/4" />
-                        </div>
-                      ))}
-                    </div>
+                    <SkeletonLoading rows={3} />
                   ) : (
-                    <div className="space-y-3">
+                    <AnimatedListItem index={1} className="space-y-3">
                       {situations.slice(0, 5).map((situation) => (
                         <div key={situation.id} className="p-3 border rounded hover:bg-muted/50 transition-colors">
                           <div className="flex justify-between items-start mb-2">
@@ -496,10 +500,10 @@ export function SituationManagementPage() {
                     </div>
                   )}
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 快速操作 */}
-              <Card>
+              <AnimatedCard delay={0.8}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Target className="h-5 w-5 mr-2" />
@@ -507,38 +511,38 @@ export function SituationManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <Plus className="h-4 w-4 mr-2" />
                     新建情况报告
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <Search className="h-4 w-4 mr-2" />
                     搜索历史情况
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <BarChart3 className="h-4 w-4 mr-2" />
                     生成分析报告
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <Download className="h-4 w-4 mr-2" />
                     导出数据
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <Settings className="h-4 w-4 mr-2" />
                     系统设置
                   </Button>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
 
           {/* 情况列表标签页 */}
           <TabsContent value="situations" className="space-y-6">
             {/* 搜索和筛选 */}
-            <Card>
+            <AnimatedCard delay={0.9}>
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div className="space-y-2">
+                <AnimatedListItem index={2} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <AnimatedListItem index={2} className="space-y-2">
                     <Label htmlFor="search">搜索</Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -552,7 +556,7 @@ export function SituationManagementPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={3} className="space-y-2">
                     <Label>分类</Label>
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                       <SelectTrigger>
@@ -570,7 +574,7 @@ export function SituationManagementPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={4} className="space-y-2">
                     <Label>状态</Label>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger>
@@ -586,7 +590,7 @@ export function SituationManagementPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={5} className="space-y-2">
                     <Label>优先级</Label>
                     <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                       <SelectTrigger>
@@ -602,7 +606,7 @@ export function SituationManagementPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={6} className="space-y-2">
                     <Label>操作</Label>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" onClick={loadData}>
@@ -615,10 +619,10 @@ export function SituationManagementPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* 情况列表 */}
-            <Card>
+            <AnimatedCard delay={1}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>情况列表 ({filteredSituations.length})</span>
@@ -630,24 +634,9 @@ export function SituationManagementPage() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <div key={index} className="p-4 border rounded">
-                        <Skeleton className="h-5 w-3/4 mb-3" />
-                        <Skeleton className="h-4 w-full mb-2" />
-                        <div className="flex justify-between items-center">
-                          <div className="flex space-x-2">
-                            <Skeleton className="h-6 w-16" />
-                            <Skeleton className="h-6 w-16" />
-                            <Skeleton className="h-6 w-16" />
-                          </div>
-                          <Skeleton className="h-4 w-24" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <SkeletonLoading rows={5} />
                 ) : filteredSituations.length > 0 ? (
-                  <div className="space-y-4">
+                  <AnimatedListItem index={7} className="space-y-4">
                     {filteredSituations.map((situation) => (
                       <div key={situation.id} className="p-4 border rounded hover:bg-muted/50 transition-colors">
                         <div className="flex justify-between items-start mb-3">
@@ -713,14 +702,14 @@ export function SituationManagementPage() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 分析报告标签页 */}
           <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnimatedListItem index={3} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 分类统计 */}
-              <Card>
+              <AnimatedCard delay={1.1}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <BarChart3 className="h-5 w-5 mr-2" />
@@ -728,7 +717,7 @@ export function SituationManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={8} className="space-y-4">
                     {['production', 'safety', 'quality', 'equipment', 'personnel', 'environment'].map((category) => {
                       const count = situations.filter(s => s.category === category).length;
                       const percentage = situations.length > 0 ? (count / situations.length) * 100 : 0;
@@ -744,10 +733,10 @@ export function SituationManagementPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 状态分布 */}
-              <Card>
+              <AnimatedCard delay={1.2000000000000002}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Activity className="h-5 w-5 mr-2" />
@@ -755,7 +744,7 @@ export function SituationManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={9} className="space-y-4">
                     {['open', 'in_progress', 'resolved', 'closed'].map((status) => {
                       const count = situations.filter(s => s.status === status).length;
                       const percentage = situations.length > 0 ? (count / situations.length) * 100 : 0;
@@ -771,10 +760,10 @@ export function SituationManagementPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 优先级分析 */}
-              <Card>
+              <AnimatedCard delay={1.3}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <TrendingUp className="h-5 w-5 mr-2" />
@@ -782,7 +771,7 @@ export function SituationManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={10} className="space-y-4">
                     {['urgent', 'high', 'medium', 'low'].map((priority) => {
                       const count = situations.filter(s => s.priority === priority).length;
                       const percentage = situations.length > 0 ? (count / situations.length) * 100 : 0;
@@ -798,10 +787,10 @@ export function SituationManagementPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 部门统计 */}
-              <Card>
+              <AnimatedCard delay={1.4000000000000001}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Users className="h-5 w-5 mr-2" />
@@ -809,7 +798,7 @@ export function SituationManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={11} className="space-y-4">
                     {Array.from(new Set(situations.map(s => s.department))).map((department) => {
                       const count = situations.filter(s => s.department === department).length;
                       const percentage = situations.length > 0 ? (count / situations.length) * 100 : 0;
@@ -825,15 +814,15 @@ export function SituationManagementPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
 
           {/* 设置标签页 */}
           <TabsContent value="settings" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnimatedListItem index={4} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 通知设置 */}
-              <Card>
+              <AnimatedCard delay={1.5}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Bell className="h-5 w-5 mr-2" />
@@ -865,10 +854,10 @@ export function SituationManagementPage() {
                     <Button variant="outline" size="sm">开启</Button>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 系统设置 */}
-              <Card>
+              <AnimatedCard delay={1.6}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Settings className="h-5 w-5 mr-2" />
@@ -876,7 +865,7 @@ export function SituationManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
+                  <AnimatedListItem index={12} className="space-y-2">
                     <Label>默认优先级</Label>
                     <Select defaultValue="medium">
                       <SelectTrigger>
@@ -890,7 +879,7 @@ export function SituationManagementPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <AnimatedListItem index={13} className="space-y-2">
                     <Label>自动分配规则</Label>
                     <Select defaultValue="department">
                       <SelectTrigger>
@@ -903,7 +892,7 @@ export function SituationManagementPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <AnimatedListItem index={14} className="space-y-2">
                     <Label>数据保留期限</Label>
                     <Select defaultValue="365">
                       <SelectTrigger>
@@ -918,11 +907,12 @@ export function SituationManagementPage() {
                     </Select>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

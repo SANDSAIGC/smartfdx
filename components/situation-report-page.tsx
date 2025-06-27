@@ -51,10 +51,34 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CardSkeletonLoading, SkeletonLoading } from "@/components/loading-transition";
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import {
+  UnifiedChart,
+  TrendLineChart,
+  ComparisonBarChart,
+  UnifiedAreaChart,
+  UnifiedPieChart,
+  UnifiedComposedChart,
+  createChartConfig,
+  formatChartData,
+  calculateTrend
+} from "@/components/ui/unified-chart";
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface SituationReport {
   id: string;
@@ -95,6 +119,10 @@ interface ReportStats {
 }
 
 export function SituationReportPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('situation-report-page');
+  const { addTimer, addListener } = useMemoryLeak('situation-report-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 状态管理
@@ -342,7 +370,12 @@ export function SituationReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="situation-report-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -360,9 +393,9 @@ export function SituationReportPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 欢迎面板 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-lg font-medium mb-2">情况报告管理</h2>
@@ -371,24 +404,14 @@ export function SituationReportPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 统计面板 */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index}>
-                <CardContent className="p-4">
-                  <Skeleton className="h-4 w-16 mb-2" />
-                  <Skeleton className="h-8 w-12 mb-1" />
-                  <Skeleton className="h-3 w-20" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <CardSkeletonLoading cards={6} />
         ) : reportStats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Card>
+          <AnimatedListItem index={0} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <AnimatedCard delay={0.1}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <FileText className="h-4 w-4 text-blue-600 mr-1" />
@@ -397,9 +420,9 @@ export function SituationReportPage() {
                 <div className="text-2xl font-bold text-blue-600">{reportStats.total_reports}</div>
                 <p className="text-xs text-muted-foreground">全部报告</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.2}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Edit className="h-4 w-4 text-gray-600 mr-1" />
@@ -408,9 +431,9 @@ export function SituationReportPage() {
                 <div className="text-2xl font-bold text-gray-600">{reportStats.draft_reports}</div>
                 <p className="text-xs text-muted-foreground">待完善</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.30000000000000004}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Upload className="h-4 w-4 text-blue-600 mr-1" />
@@ -419,9 +442,9 @@ export function SituationReportPage() {
                 <div className="text-2xl font-bold text-blue-600">{reportStats.submitted_reports}</div>
                 <p className="text-xs text-muted-foreground">等待审核</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.4}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Clock className="h-4 w-4 text-yellow-600 mr-1" />
@@ -430,9 +453,9 @@ export function SituationReportPage() {
                 <div className="text-2xl font-bold text-yellow-600">{reportStats.pending_review}</div>
                 <p className="text-xs text-muted-foreground">正在审核</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.5}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
@@ -441,9 +464,9 @@ export function SituationReportPage() {
                 <div className="text-2xl font-bold text-green-600">{reportStats.approved_reports}</div>
                 <p className="text-xs text-muted-foreground">审核通过</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.6000000000000001}>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <AlertTriangle className="h-4 w-4 text-red-600 mr-1" />
@@ -452,7 +475,7 @@ export function SituationReportPage() {
                 <div className="text-2xl font-bold text-red-600">{reportStats.rejected_reports}</div>
                 <p className="text-xs text-muted-foreground">需要修改</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </div>
         )}
 
@@ -467,9 +490,9 @@ export function SituationReportPage() {
 
           {/* 概览标签页 */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnimatedListItem index={1} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 最新报告 */}
-              <Card>
+              <AnimatedCard delay={0.7000000000000001}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <FileText className="h-5 w-5 mr-2" />
@@ -478,17 +501,9 @@ export function SituationReportPage() {
                 </CardHeader>
                 <CardContent>
                   {loading ? (
-                    <div className="space-y-3">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <div key={index} className="p-3 border rounded">
-                          <Skeleton className="h-4 w-3/4 mb-2" />
-                          <Skeleton className="h-3 w-1/2 mb-1" />
-                          <Skeleton className="h-3 w-1/4" />
-                        </div>
-                      ))}
-                    </div>
+                    <SkeletonLoading rows={3} />
                   ) : (
-                    <div className="space-y-3">
+                    <AnimatedListItem index={1} className="space-y-3">
                       {reports.slice(0, 5).map((report) => (
                         <div key={report.id} className="p-3 border rounded hover:bg-muted/50 transition-colors">
                           <div className="flex justify-between items-start mb-2">
@@ -518,10 +533,10 @@ export function SituationReportPage() {
                     </div>
                   )}
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 快速操作 */}
-              <Card>
+              <AnimatedCard delay={0.8}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Target className="h-5 w-5 mr-2" />
@@ -529,7 +544,7 @@ export function SituationReportPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button
+                  <AnimatedButton
                     className="w-full justify-start"
                     variant="outline"
                     onClick={() => setActiveTab('create')}
@@ -537,34 +552,34 @@ export function SituationReportPage() {
                     <Plus className="h-4 w-4 mr-2" />
                     创建新报告
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <Search className="h-4 w-4 mr-2" />
                     搜索历史报告
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <BarChart3 className="h-4 w-4 mr-2" />
                     生成统计报告
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <Download className="h-4 w-4 mr-2" />
                     导出报告数据
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <AnimatedButton className="w-full justify-start" variant="outline">
                     <Settings className="h-4 w-4 mr-2" />
                     报告模板设置
                   </Button>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
 
           {/* 报告列表标签页 */}
           <TabsContent value="reports" className="space-y-6">
             {/* 搜索和筛选 */}
-            <Card>
+            <AnimatedCard delay={0.9}>
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div className="space-y-2">
+                <AnimatedListItem index={2} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <AnimatedListItem index={2} className="space-y-2">
                     <Label htmlFor="search">搜索</Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -578,7 +593,7 @@ export function SituationReportPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={3} className="space-y-2">
                     <Label>分类</Label>
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                       <SelectTrigger>
@@ -596,7 +611,7 @@ export function SituationReportPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={4} className="space-y-2">
                     <Label>状态</Label>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger>
@@ -613,7 +628,7 @@ export function SituationReportPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={5} className="space-y-2">
                     <Label>优先级</Label>
                     <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                       <SelectTrigger>
@@ -629,7 +644,7 @@ export function SituationReportPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={6} className="space-y-2">
                     <Label>操作</Label>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" onClick={loadData}>
@@ -642,10 +657,10 @@ export function SituationReportPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* 报告列表 */}
-            <Card>
+            <AnimatedCard delay={1}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>报告列表 ({filteredReports.length})</span>
@@ -657,24 +672,9 @@ export function SituationReportPage() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <div key={index} className="p-4 border rounded">
-                        <Skeleton className="h-5 w-3/4 mb-3" />
-                        <Skeleton className="h-4 w-full mb-2" />
-                        <div className="flex justify-between items-center">
-                          <div className="flex space-x-2">
-                            <Skeleton className="h-6 w-16" />
-                            <Skeleton className="h-6 w-16" />
-                            <Skeleton className="h-6 w-16" />
-                          </div>
-                          <Skeleton className="h-4 w-24" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <SkeletonLoading rows={5} />
                 ) : filteredReports.length > 0 ? (
-                  <div className="space-y-4">
+                  <AnimatedListItem index={7} className="space-y-4">
                     {filteredReports.map((report) => (
                       <div key={report.id} className="p-4 border rounded hover:bg-muted/50 transition-colors">
                         <div className="flex justify-between items-start mb-3">
@@ -737,12 +737,12 @@ export function SituationReportPage() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 创建报告标签页 */}
           <TabsContent value="create" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={1.1}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Plus className="h-5 w-5 mr-2" />
@@ -750,12 +750,12 @@ export function SituationReportPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AnimatedListItem index={3} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* 基本信息 */}
-                  <div className="space-y-4">
+                  <AnimatedListItem index={8} className="space-y-4">
                     <h3 className="font-medium">基本信息</h3>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={9} className="space-y-2">
                       <Label htmlFor="title">报告标题 *</Label>
                       <Input
                         id="title"
@@ -765,7 +765,7 @@ export function SituationReportPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={10} className="space-y-2">
                       <Label htmlFor="description">事件描述 *</Label>
                       <Textarea
                         id="description"
@@ -776,8 +776,8 @@ export function SituationReportPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
+                    <AnimatedListItem index={4} className="grid grid-cols-2 gap-4">
+                      <AnimatedListItem index={11} className="space-y-2">
                         <Label>事件分类 *</Label>
                         <Select
                           value={formData.category}
@@ -797,7 +797,7 @@ export function SituationReportPage() {
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
+                      <AnimatedListItem index={12} className="space-y-2">
                         <Label>优先级 *</Label>
                         <Select
                           value={formData.priority}
@@ -816,7 +816,7 @@ export function SituationReportPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={13} className="space-y-2">
                       <Label htmlFor="location">事件地点 *</Label>
                       <Input
                         id="location"
@@ -826,11 +826,11 @@ export function SituationReportPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={14} className="space-y-2">
                       <Label>事件日期 *</Label>
                       <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                         <PopoverTrigger asChild>
-                          <Button
+                          <AnimatedButton
                             variant="outline"
                             className={cn(
                               "w-full justify-start text-left font-normal",
@@ -858,10 +858,10 @@ export function SituationReportPage() {
                   </div>
 
                   {/* 详细信息 */}
-                  <div className="space-y-4">
+                  <AnimatedListItem index={15} className="space-y-4">
                     <h3 className="font-medium">详细信息</h3>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={16} className="space-y-2">
                       <Label htmlFor="immediate_actions">立即采取的行动</Label>
                       <Textarea
                         id="immediate_actions"
@@ -872,7 +872,7 @@ export function SituationReportPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={17} className="space-y-2">
                       <Label htmlFor="root_cause">根本原因分析</Label>
                       <Textarea
                         id="root_cause"
@@ -883,7 +883,7 @@ export function SituationReportPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={18} className="space-y-2">
                       <Label htmlFor="corrective_actions">纠正措施</Label>
                       <Textarea
                         id="corrective_actions"
@@ -894,7 +894,7 @@ export function SituationReportPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <AnimatedListItem index={19} className="space-y-2">
                       <Label htmlFor="preventive_measures">预防措施</Label>
                       <Textarea
                         id="preventive_measures"
@@ -920,26 +920,26 @@ export function SituationReportPage() {
 
                 {/* 操作按钮 */}
                 <div className="flex justify-end space-x-4 pt-6 border-t">
-                  <Button variant="outline">
+                  <AnimatedButton variant="outline">
                     <Camera className="h-4 w-4 mr-2" />
                     添加附件
                   </Button>
-                  <Button variant="outline">
+                  <AnimatedButton variant="outline">
                     保存草稿
                   </Button>
-                  <Button>
+                  <AnimatedButton>
                     提交报告
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 统计分析标签页 */}
           <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AnimatedListItem index={5} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 分类统计 */}
-              <Card>
+              <AnimatedCard delay={1.2000000000000002}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <PieChart className="h-5 w-5 mr-2" />
@@ -947,7 +947,7 @@ export function SituationReportPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={20} className="space-y-4">
                     {['production', 'safety', 'quality', 'equipment', 'personnel', 'environment'].map((category) => {
                       const count = reports.filter(r => r.category === category).length;
                       const percentage = reports.length > 0 ? (count / reports.length) * 100 : 0;
@@ -963,10 +963,10 @@ export function SituationReportPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 状态分布 */}
-              <Card>
+              <AnimatedCard delay={1.3}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <BarChart3 className="h-5 w-5 mr-2" />
@@ -974,7 +974,7 @@ export function SituationReportPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={21} className="space-y-4">
                     {['draft', 'submitted', 'under_review', 'approved', 'rejected'].map((status) => {
                       const count = reports.filter(r => r.status === status).length;
                       const percentage = reports.length > 0 ? (count / reports.length) * 100 : 0;
@@ -990,10 +990,10 @@ export function SituationReportPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 优先级分析 */}
-              <Card>
+              <AnimatedCard delay={1.4000000000000001}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <TrendingUp className="h-5 w-5 mr-2" />
@@ -1001,7 +1001,7 @@ export function SituationReportPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={22} className="space-y-4">
                     {['urgent', 'high', 'medium', 'low'].map((priority) => {
                       const count = reports.filter(r => r.priority === priority).length;
                       const percentage = reports.length > 0 ? (count / reports.length) * 100 : 0;
@@ -1017,10 +1017,10 @@ export function SituationReportPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
               {/* 部门统计 */}
-              <Card>
+              <AnimatedCard delay={1.5}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Building className="h-5 w-5 mr-2" />
@@ -1028,7 +1028,7 @@ export function SituationReportPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={23} className="space-y-4">
                     {Array.from(new Set(reports.map(r => r.reporter_department))).map((department) => {
                       const count = reports.filter(r => r.reporter_department === department).length;
                       const percentage = reports.length > 0 ? (count / reports.length) * 100 : 0;
@@ -1044,11 +1044,12 @@ export function SituationReportPage() {
                     })}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

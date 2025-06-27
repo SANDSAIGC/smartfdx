@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LoginRequest, LoginResponse } from '@/lib/types/auth';
+import { RedirectManager, RedirectType } from '@/lib/redirect-manager';
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,36 +77,16 @@ export async function POST(request: NextRequest) {
 
     console.log('密码验证成功');
 
-    // 3. 获取用户的工作页面路由
-    let redirectUrl = '/lab'; // 默认页面
+    // 3. 使用智能重定向管理器获取重定向URL
+    const redirectResult = RedirectManager.handleLoginSuccess(userProfile);
+    const redirectUrl = redirectResult.targetUrl;
 
-    if (userProfile.工作页面) {
-      const workPageQueryUrl = `${supabaseUrl}/rest/v1/工作页面?页面名称=eq.${encodeURIComponent(userProfile.工作页面)}&select=页面路由`;
-      console.log('工作页面查询URL:', workPageQueryUrl);
-
-      const workPageResponse = await fetch(workPageQueryUrl, {
-        method: 'GET',
-        headers: {
-          'apikey': anonKey,
-          'Authorization': `Bearer ${anonKey}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
-
-      if (workPageResponse.ok) {
-        const workPages = await workPageResponse.json();
-        console.log('工作页面查询结果:', workPages);
-
-        if (workPages && workPages.length > 0) {
-          redirectUrl = workPages[0].页面路由;
-        }
-      } else {
-        console.error('工作页面查询失败:', await workPageResponse.text());
-      }
-    }
-
-    console.log('最终重定向URL:', redirectUrl);
+    console.log('智能重定向结果:', {
+      shouldRedirect: redirectResult.shouldRedirect,
+      targetUrl: redirectResult.targetUrl,
+      type: redirectResult.type,
+      reason: redirectResult.reason
+    });
 
     // 4. 返回成功响应
     const response: LoginResponse = {

@@ -19,7 +19,20 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 类型定义
 interface BallMillRecord {
   date: Date;
@@ -41,6 +54,10 @@ interface CalculatorData {
 }
 
 export function BallMillWorkshopPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('ball-mill-workshop-page');
+  const { addTimer, addListener } = useMemoryLeak('ball-mill-workshop-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 状态管理
@@ -176,11 +193,19 @@ export function BallMillWorkshopPage() {
       }));
     }, 5000);
 
-    return () => clearInterval(interval);
+    return (
+    <PerformanceWrapper
+      componentName="ball-mill-workshop-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      
+    </PerformanceWrapper>
+  ) => clearInterval(interval);
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -214,8 +239,8 @@ export function BallMillWorkshopPage() {
           </div>
 
           {/* 实时指标卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <Card>
+          <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <AnimatedCard delay={0}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">当前给料量</CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
@@ -227,9 +252,9 @@ export function BallMillWorkshopPage() {
                   实时监控
                 </p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.1}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">一号壶浓度</CardTitle>
                 <Beaker className="h-4 w-4 text-muted-foreground" />
@@ -238,9 +263,9 @@ export function BallMillWorkshopPage() {
                 <div className="text-2xl font-bold">{metrics.avgDensity1.toFixed(1)}%</div>
                 <p className="text-xs text-muted-foreground">平均值</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.2}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">二号壶浓度</CardTitle>
                 <Beaker className="h-4 w-4 text-muted-foreground" />
@@ -249,9 +274,9 @@ export function BallMillWorkshopPage() {
                 <div className="text-2xl font-bold">{metrics.avgDensity2.toFixed(1)}%</div>
                 <p className="text-xs text-muted-foreground">平均值</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.30000000000000004}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">二号壶细度</CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
@@ -260,9 +285,9 @@ export function BallMillWorkshopPage() {
                 <div className="text-2xl font-bold">{metrics.avgFineness.toFixed(1)}%</div>
                 <p className="text-xs text-muted-foreground">平均值</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard delay={0.4}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">设备效率</CardTitle>
                 <Gauge className="h-4 w-4 text-muted-foreground" />
@@ -271,11 +296,11 @@ export function BallMillWorkshopPage() {
                 <div className="text-2xl font-bold">{metrics.efficiency.toFixed(1)}%</div>
                 <p className="text-xs text-muted-foreground">运行状态</p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </div>
 
           {/* 数据记录表单 */}
-          <Card>
+          <AnimatedCard delay={0.5}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <User className="w-5 h-5 mr-2" />
@@ -284,12 +309,12 @@ export function BallMillWorkshopPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 基础信息 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <AnimatedListItem index={1} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AnimatedListItem index={0} className="space-y-2">
                   <Label>记录日期</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
+                      <AnimatedButton
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
@@ -316,7 +341,7 @@ export function BallMillWorkshopPage() {
                   </Popover>
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={1} className="space-y-2">
                   <Label htmlFor="time">记录时间</Label>
                   <Input
                     id="time"
@@ -328,8 +353,8 @@ export function BallMillWorkshopPage() {
               </div>
 
               {/* 给料量和重量数据 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
+              <AnimatedListItem index={2} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <AnimatedListItem index={2} className="space-y-2">
                   <Label htmlFor="feedRate">给料量 (t/h)</Label>
                   <Input
                     id="feedRate"
@@ -341,7 +366,7 @@ export function BallMillWorkshopPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={3} className="space-y-2">
                   <Label htmlFor="pot1Weight">一号壶重量 (g)</Label>
                   <Input
                     id="pot1Weight"
@@ -353,7 +378,7 @@ export function BallMillWorkshopPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={4} className="space-y-2">
                   <Label htmlFor="pot2Weight">二号壶重量 (g)</Label>
                   <Input
                     id="pot2Weight"
@@ -367,8 +392,8 @@ export function BallMillWorkshopPage() {
               </div>
 
               {/* 浓度和细度数据 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
+              <AnimatedListItem index={3} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <AnimatedListItem index={5} className="space-y-2">
                   <Label>一号壶浓度 (%)</Label>
                   <div className="flex space-x-2">
                     <Input
@@ -378,7 +403,7 @@ export function BallMillWorkshopPage() {
                       value={formData.pot1Density}
                       onChange={(e) => updateFormField('pot1Density', parseFloat(e.target.value) || '')}
                     />
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       size="icon"
                       onClick={() => openCalculator('density1')}
@@ -388,7 +413,7 @@ export function BallMillWorkshopPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={6} className="space-y-2">
                   <Label>二号壶浓度 (%)</Label>
                   <div className="flex space-x-2">
                     <Input
@@ -398,7 +423,7 @@ export function BallMillWorkshopPage() {
                       value={formData.pot2Density}
                       onChange={(e) => updateFormField('pot2Density', parseFloat(e.target.value) || '')}
                     />
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       size="icon"
                       onClick={() => openCalculator('density2')}
@@ -408,7 +433,7 @@ export function BallMillWorkshopPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={7} className="space-y-2">
                   <Label>二号壶细度 (%)</Label>
                   <div className="flex space-x-2">
                     <Input
@@ -418,7 +443,7 @@ export function BallMillWorkshopPage() {
                       value={formData.pot2Fineness}
                       onChange={(e) => updateFormField('pot2Fineness', parseFloat(e.target.value) || '')}
                     />
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       size="icon"
                       onClick={() => openCalculator('fineness')}
@@ -430,8 +455,8 @@ export function BallMillWorkshopPage() {
               </div>
 
               {/* 筛下重量和备注 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <AnimatedListItem index={4} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AnimatedListItem index={8} className="space-y-2">
                   <Label htmlFor="pot2FineWeight">二号壶筛下 (g)</Label>
                   <Input
                     id="pot2FineWeight"
@@ -443,7 +468,7 @@ export function BallMillWorkshopPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={9} className="space-y-2">
                   <Label htmlFor="remarks">备注</Label>
                   <Textarea
                     id="remarks"
@@ -457,24 +482,24 @@ export function BallMillWorkshopPage() {
 
               {/* 提交按钮 */}
               <div className="flex justify-end space-x-4">
-                <Button variant="outline" onClick={() => window.location.reload()}>
+                <AnimatedButton variant="outline" onClick={() => window.location.reload()}>
                   <RefreshCw className="w-4 h-4 mr-2" />
                   重置
                 </Button>
-                <Button onClick={handleSubmit} disabled={isLoading}>
+                <AnimatedButton onClick={handleSubmit} disabled={isLoading}>
                   <Save className="w-4 h-4 mr-2" />
                   {isLoading ? "提交中..." : "提交记录"}
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </motion.div>
       </div>
 
       {/* 计算器弹窗 */}
       {showCalculator && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-96 mx-4">
+          <AnimatedCard delay={0.6000000000000001} className="w-96 mx-4">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Calculator className="w-5 h-5 mr-2" />
@@ -483,7 +508,7 @@ export function BallMillWorkshopPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
+              <AnimatedListItem index={10} className="space-y-2">
                 <Label>总重量 (g)</Label>
                 <Input
                   type="number"
@@ -494,7 +519,7 @@ export function BallMillWorkshopPage() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <AnimatedListItem index={11} className="space-y-2">
                 <Label>
                   {calculatorType === 'fineness' ? '筛下重量 (g)' : '干重 (g)'}
                 </Label>
@@ -507,7 +532,7 @@ export function BallMillWorkshopPage() {
                 />
               </div>
 
-              <Button onClick={calculateResult} className="w-full">
+              <AnimatedButton onClick={calculateResult} className="w-full">
                 计算
               </Button>
 
@@ -525,10 +550,10 @@ export function BallMillWorkshopPage() {
               )}
 
               <div className="flex space-x-2">
-                <Button variant="outline" onClick={() => setShowCalculator(false)} className="flex-1">
+                <AnimatedButton variant="outline" onClick={() => setShowCalculator(false)} className="flex-1">
                   取消
                 </Button>
-                <Button 
+                <AnimatedButton 
                   onClick={applyCalculatorResult} 
                   disabled={calculatorData.result === ''}
                   className="flex-1"
@@ -537,7 +562,7 @@ export function BallMillWorkshopPage() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
       )}
     </div>

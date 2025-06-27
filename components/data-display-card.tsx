@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLoading } from "@/components/loading-transition";
 import { DatePicker } from "@/components/ui/date-picker";
 
 interface DemoRecord {
@@ -167,11 +167,7 @@ export function DataDisplayCard({ refreshTrigger }: DataDisplayCardProps) {
             请选择日期以查看数据
           </div>
         ) : isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
+          <SkeletonLoading rows={3} />
         ) : records.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             所选日期暂无数据

@@ -18,7 +18,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FooterSignature } from "@/components/ui/footer-signature";
+import { useConfirmationDialog, CONFIRMATION_CONFIGS } from "@/components/ui/confirmation-dialog";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 类型定义
 interface WeighbridgeRecord {
   recordDateTime: Date;
@@ -31,6 +45,13 @@ interface WeighbridgeRecord {
 }
 
 export function WeighbridgeDataPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('weighbridge-data-page');
+  const { addTimer, addListener } = useMemoryLeak('weighbridge-data-page');
+  const { metrics } = usePerformanceOptimization();
+  // 确认对话框
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
+
   const router = useRouter();
   
   // 状态管理
@@ -81,7 +102,12 @@ export function WeighbridgeDataPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <PerformanceWrapper
+      componentName="weighbridge-data-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background text-foreground">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -111,7 +137,7 @@ export function WeighbridgeDataPage() {
             <p className="text-muted-foreground">记录来往车辆的称重数据</p>
           </div>
           
-          <Card>
+          <AnimatedCard delay={0}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Truck className="mr-2 h-5 w-5" />
@@ -120,14 +146,14 @@ export function WeighbridgeDataPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 载物类型选择 */}
-              <div className="space-y-3">
+              <AnimatedListItem index={0} className="space-y-3">
                 <Label className="flex items-center text-sm font-medium">
                   <Package className="mr-2 h-4 w-4" />
                   载物类型
                 </Label>
-                <div className="grid grid-cols-3 gap-3">
+                <AnimatedListItem index={0} className="grid grid-cols-3 gap-3">
                   {['原矿', '销售矿', '其他'].map((type) => (
-                    <Button
+                    <AnimatedButton
                       key={type}
                       variant={cargoType === type ? "default" : "outline"}
                       className="h-12"
@@ -140,14 +166,14 @@ export function WeighbridgeDataPage() {
               </div>
               
               {/* 时间选择 */}
-              <div className="space-y-3">
+              <AnimatedListItem index={1} className="space-y-3">
                 <Label className="flex items-center text-sm font-medium">
                   <CalendarRange className="mr-2 h-4 w-4" />
                   记录时间
                 </Label>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
@@ -175,7 +201,7 @@ export function WeighbridgeDataPage() {
               </div>
               
               {/* 关联单位 */}
-              <div className="space-y-3">
+              <AnimatedListItem index={2} className="space-y-3">
                 <Label htmlFor="related-unit" className="flex items-center text-sm font-medium">
                   <Building className="mr-2 h-4 w-4" />
                   关联单位
@@ -189,7 +215,7 @@ export function WeighbridgeDataPage() {
               </div>
               
               {/* 车牌号 */}
-              <div className="space-y-3">
+              <AnimatedListItem index={3} className="space-y-3">
                 <Label htmlFor="plate-number" className="flex items-center text-sm font-medium">
                   <Truck className="mr-2 h-4 w-4" />
                   车牌号（选填）
@@ -203,20 +229,20 @@ export function WeighbridgeDataPage() {
               </div>
               
               {/* 进出状态 */}
-              <div className="space-y-3">
+              <AnimatedListItem index={4} className="space-y-3">
                 <Label className="flex items-center text-sm font-medium">
                   <ArrowDownUp className="mr-2 h-4 w-4" />
                   进出状态
                 </Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
+                <AnimatedListItem index={1} className="grid grid-cols-2 gap-3">
+                  <AnimatedButton
                     variant={direction === "in" ? "default" : "outline"}
                     className="h-12"
                     onClick={() => setDirection("in")}
                   >
                     进厂
                   </Button>
-                  <Button
+                  <AnimatedButton
                     variant={direction === "out" ? "default" : "outline"}
                     className="h-12"
                     onClick={() => setDirection("out")}
@@ -227,7 +253,7 @@ export function WeighbridgeDataPage() {
               </div>
               
               {/* 重量 */}
-              <div className="space-y-3">
+              <AnimatedListItem index={5} className="space-y-3">
                 <Label htmlFor="weight" className="flex items-center text-sm font-medium">
                   <Scale className="mr-2 h-4 w-4" />
                   重量 (KG) *
@@ -243,7 +269,7 @@ export function WeighbridgeDataPage() {
               </div>
               
               {/* 备注 */}
-              <div className="space-y-3">
+              <AnimatedListItem index={6} className="space-y-3">
                 <Label htmlFor="remark" className="flex items-center text-sm font-medium">
                   <FileEdit className="mr-2 h-4 w-4" />
                   备注（选填）
@@ -259,8 +285,8 @@ export function WeighbridgeDataPage() {
               
               {/* 提交按钮 */}
               <div className="pt-4">
-                <Button
-                  onClick={handleSubmit}
+                <AnimatedButton
+                  onClick={handleSubmitWithConfirmation}
                   disabled={isSubmitting || !weight}
                   className={cn(
                     "w-full h-12 relative overflow-hidden transition-all duration-300",
@@ -281,7 +307,7 @@ export function WeighbridgeDataPage() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </motion.div>
       </div>
       
@@ -306,6 +332,10 @@ export function WeighbridgeDataPage() {
           </Button>
         </div>
       </div>
-    </div>
+
+      {/* 确认对话框 */}
+      <ConfirmationDialog />
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

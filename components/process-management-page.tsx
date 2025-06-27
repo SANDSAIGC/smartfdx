@@ -17,7 +17,23 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
+import {
+  UnifiedChart,
+  TrendLineChart,
+  ComparisonBarChart,
+  UnifiedAreaChart,
+  UnifiedPieChart,
+  UnifiedComposedChart,
+  createChartConfig,
+  formatChartData,
+  calculateTrend
+} from "@/components/ui/unified-chart";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -28,8 +44,21 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLoading, TableSkeletonLoading } from "@/components/loading-transition";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface ShiftReportData {
   date: string;
@@ -94,6 +123,10 @@ const COLORS = {
 };
 
 export function ProcessManagementPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('process-management-page');
+  const { addTimer, addListener } = useMemoryLeak('process-management-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("shift-report");
   const [loading, setLoading] = useState(false);
@@ -251,7 +284,12 @@ export function ProcessManagementPage() {
     const data = getDonutData(value, maxValue, label, unit, color);
 
     return (
-      <div className="flex flex-col items-center space-y-2">
+    <PerformanceWrapper
+      componentName="process-management-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedListItem index={0} className="flex flex-col items-center space-y-2">
         <div className="relative w-16 h-16">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -272,6 +310,7 @@ export function ProcessManagementPage() {
               </Pie>
             </PieChart>
           </ResponsiveContainer>
+          
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-xs font-semibold">{value.toFixed(1)}</span>
           </div>
@@ -280,12 +319,13 @@ export function ProcessManagementPage() {
           <p className="text-xs font-medium">{label}</p>
           <p className="text-xs text-muted-foreground">{unit}</p>
         </div>
-      </div>
-    );
+      </AnimatedPage>
+    </PerformanceWrapper>
+  );
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -309,7 +349,7 @@ export function ProcessManagementPage() {
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={1} className="p-6 space-y-6">
         {/* 状态指示器 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -332,7 +372,7 @@ export function ProcessManagementPage() {
           {/* 生产班报选项卡 */}
           <TabsContent value="shift-report" className="space-y-6">
             {/* 日期和班次选择 */}
-            <Card>
+            <AnimatedCard delay={0}>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">班报查询</CardTitle>
               </CardHeader>
@@ -340,7 +380,7 @@ export function ProcessManagementPage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                     <PopoverTrigger asChild>
-                      <Button
+                      <AnimatedButton
                         variant="outline"
                         className={cn(
                           "justify-start text-left font-normal",
@@ -376,24 +416,20 @@ export function ProcessManagementPage() {
                     </SelectContent>
                   </Select>
 
-                  <Button onClick={fetchData} disabled={loading}>
+                  <AnimatedButton onClick={fetchData} disabled={loading}>
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                     刷新
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {loading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
-              </div>
+              <SkeletonLoading rows={3} className="h-32" />
             ) : shiftReportData ? (
               <>
                 {/* 原矿数据 */}
-                <Card>
+                <AnimatedCard delay={0.1}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <BarChart3 className="h-5 w-5 mr-2" />
@@ -404,7 +440,7 @@ export function ProcessManagementPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-6">
+                    <AnimatedListItem index={0} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-6">
                       <DonutChart value={shiftReportData.wetWeight} maxValue={100} label="原矿湿重" unit="吨" color={COLORS.primary} />
                       <DonutChart value={shiftReportData.moisture} maxValue={20} label="原矿水分" unit="%" color={COLORS.accent} />
                       <DonutChart value={shiftReportData.dryWeight} maxValue={100} label="原矿干重" unit="吨" color={COLORS.secondary} />
@@ -414,10 +450,10 @@ export function ProcessManagementPage() {
                       <DonutChart value={shiftReportData.orePbMetalAmount} maxValue={5} label="原矿铅金属量" unit="吨" color="#6366F1" />
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
                 {/* 精矿数据 */}
-                <Card>
+                <AnimatedCard delay={0.2}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <TrendingUp className="h-5 w-5 mr-2" />
@@ -425,7 +461,7 @@ export function ProcessManagementPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+                    <AnimatedListItem index={1} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
                       <DonutChart value={shiftReportData.concentrateAmount} maxValue={50} label="精矿产量" unit="吨" color="#2563EB" />
                       <DonutChart value={shiftReportData.concentrateZnGrade} maxValue={30} label="精矿锌品位" unit="%" color="#DB2777" />
                       <DonutChart value={shiftReportData.concentratePbGrade} maxValue={10} label="精矿铅品位" unit="%" color="#7C3AED" />
@@ -433,10 +469,10 @@ export function ProcessManagementPage() {
                       <DonutChart value={shiftReportData.concentratePbMetalAmount} maxValue={5} label="精矿铅金属量" unit="吨" color="#9333EA" />
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
                 {/* 尾矿数据 */}
-                <Card>
+                <AnimatedCard delay={0.30000000000000004}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Activity className="h-5 w-5 mr-2" />
@@ -444,16 +480,16 @@ export function ProcessManagementPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                    <AnimatedListItem index={2} className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                       <DonutChart value={shiftReportData.tailingAmount} maxValue={80} label="尾矿产量" unit="吨" color="#0D9488" />
                       <DonutChart value={shiftReportData.tailingZnGrade} maxValue={5} label="尾矿锌品位" unit="%" color="#DC2626" />
                       <DonutChart value={shiftReportData.tailingPbGrade} maxValue={3} label="尾矿铅品位" unit="%" color="#CA8A04" />
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
                 {/* 回收率 */}
-                <Card>
+                <AnimatedCard delay={0.4}>
                   <CardHeader>
                     <CardTitle>回收率·班次</CardTitle>
                   </CardHeader>
@@ -479,6 +515,7 @@ export function ProcessManagementPage() {
                             </Pie>
                           </PieChart>
                         </ResponsiveContainer>
+                        
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                           <span className="text-lg font-bold">{shiftReportData.theoreticalRecovery.toFixed(1)}</span>
                           <span className="text-xs text-muted-foreground">%</span>
@@ -492,38 +529,38 @@ export function ProcessManagementPage() {
                       </Badge>
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
                 {/* 物料流转 */}
-                <Card>
+                <AnimatedCard delay={0.5}>
                   <CardHeader>
                     <CardTitle>物料流转·每日</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                    <AnimatedListItem index={3} className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                       <DonutChart value={shiftReportData.materialInputAmount} maxValue={100} label="原料倒入量" unit="吨" color="#A855F7" />
                       <DonutChart value={shiftReportData.materialConsumptionAmount} maxValue={100} label="原料消耗量" unit="吨" color="#F43F5E" />
                       <DonutChart value={shiftReportData.concentrateOutput} maxValue={100} label="精矿产出量" unit="吨" color="#0EA5E9" />
                       <DonutChart value={shiftReportData.concentrateOutputShipped} maxValue={100} label="精矿出厂量" unit="吨" color="#10B981" />
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
               </>
             ) : (
-              <Card>
+              <AnimatedCard delay={0.6000000000000001}>
                 <CardContent className="text-center py-8">
                   <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="text-muted-foreground">暂无班报数据</p>
                   <p className="text-sm text-muted-foreground">请选择日期和班次后点击刷新</p>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             )}
           </TabsContent>
 
           {/* 生产累计选项卡 */}
           <TabsContent value="cumulative" className="space-y-6">
             {/* 日期范围选择 */}
-            <Card>
+            <AnimatedCard delay={0.7000000000000001}>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">累计数据查询</CardTitle>
               </CardHeader>
@@ -531,7 +568,7 @@ export function ProcessManagementPage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Popover open={isDateRangePickerOpen} onOpenChange={setIsDateRangePickerOpen}>
                     <PopoverTrigger asChild>
-                      <Button
+                      <AnimatedButton
                         variant="outline"
                         className="justify-start text-left font-normal"
                       >
@@ -540,9 +577,9 @@ export function ProcessManagementPage() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-4" align="start">
-                      <div className="space-y-4">
+                      <AnimatedListItem index={2} className="space-y-4">
                         <div className="text-sm font-medium">选择日期范围</div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <AnimatedListItem index={4} className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-xs text-muted-foreground">开始日期</label>
                             <CalendarComponent
@@ -582,24 +619,20 @@ export function ProcessManagementPage() {
                     </PopoverContent>
                   </Popover>
 
-                  <Button onClick={fetchData} disabled={loading}>
+                  <AnimatedButton onClick={fetchData} disabled={loading}>
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                     刷新
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {loading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
-              </div>
+              <SkeletonLoading rows={3} className="h-32" />
             ) : cumulativeStats ? (
               <>
                 {/* 原矿累计数据 */}
-                <Card>
+                <AnimatedCard delay={0.8}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <BarChart3 className="h-5 w-5 mr-2" />
@@ -610,7 +643,7 @@ export function ProcessManagementPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                    <AnimatedListItem index={5} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                       <DonutChart value={cumulativeStats.totalWetWeight} maxValue={cumulativeStats.totalWetWeight * 1.2} label="原矿湿重累计" unit="t" color={COLORS.primary} />
                       <DonutChart value={cumulativeStats.avgOreMoisture} maxValue={20} label="原矿水分平均" unit="%" color={COLORS.accent} />
                       <DonutChart value={cumulativeStats.totalDryWeight} maxValue={cumulativeStats.totalDryWeight * 1.2} label="原矿干重累计" unit="t" color={COLORS.secondary} />
@@ -620,10 +653,10 @@ export function ProcessManagementPage() {
                       <DonutChart value={cumulativeStats.totalOrePbMetalAmount} maxValue={cumulativeStats.totalOrePbMetalAmount * 1.2} label="原矿铅金属量累计" unit="t" color="#6366F1" />
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
                 {/* 精矿累计数据 */}
-                <Card>
+                <AnimatedCard delay={0.9}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <TrendingUp className="h-5 w-5 mr-2" />
@@ -631,7 +664,7 @@ export function ProcessManagementPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
+                    <AnimatedListItem index={6} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
                       <DonutChart value={cumulativeStats.totalConcentrateAmount} maxValue={cumulativeStats.totalConcentrateAmount * 1.2} label="精矿产量累计" unit="t" color="#8B5CF6" />
                       <DonutChart value={cumulativeStats.avgConcentrateZnGrade} maxValue={30} label="精矿锌品位平均" unit="%" color="#9333EA" />
                       <DonutChart value={cumulativeStats.avgConcentratePbGrade} maxValue={10} label="精矿铅品位平均" unit="%" color="#DB2777" />
@@ -639,10 +672,10 @@ export function ProcessManagementPage() {
                       <DonutChart value={cumulativeStats.totalConcentratePbMetalAmount} maxValue={cumulativeStats.totalConcentratePbMetalAmount * 1.2} label="精矿铅金属量累计" unit="t" color="#F43F5E" />
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
                 {/* 尾矿累计数据 */}
-                <Card>
+                <AnimatedCard delay={1}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Activity className="h-5 w-5 mr-2" />
@@ -650,16 +683,16 @@ export function ProcessManagementPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                    <AnimatedListItem index={7} className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                       <DonutChart value={cumulativeStats.totalTailingAmount} maxValue={cumulativeStats.totalTailingAmount * 1.2} label="尾矿产量累计" unit="t" color="#0D9488" />
                       <DonutChart value={cumulativeStats.avgTailingZnGrade} maxValue={5} label="尾矿锌品位平均" unit="%" color="#DC2626" />
                       <DonutChart value={cumulativeStats.avgTailingPbGrade} maxValue={3} label="尾矿铅品位平均" unit="%" color="#CA8A04" />
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
                 {/* 回收率累计 */}
-                <Card>
+                <AnimatedCard delay={1.1}>
                   <CardHeader>
                     <CardTitle>回收率累计</CardTitle>
                   </CardHeader>
@@ -685,6 +718,7 @@ export function ProcessManagementPage() {
                             </Pie>
                           </PieChart>
                         </ResponsiveContainer>
+                        
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                           <span className="text-lg font-bold">{cumulativeStats.avgTheoreticalRecovery.toFixed(1)}</span>
                           <span className="text-xs text-muted-foreground">%</span>
@@ -698,36 +732,36 @@ export function ProcessManagementPage() {
                       </Badge>
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
                 {/* 物料流转累计 */}
-                <Card>
+                <AnimatedCard delay={1.2000000000000002}>
                   <CardHeader>
                     <CardTitle>物料流转累计</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                    <AnimatedListItem index={8} className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                       <DonutChart value={cumulativeStats.totalMaterialInput} maxValue={cumulativeStats.totalMaterialInput * 1.2} label="原料倒入量累计" unit="t" color="#A855F7" />
                       <DonutChart value={cumulativeStats.totalMaterialConsumption} maxValue={cumulativeStats.totalMaterialConsumption * 1.2} label="原料消耗量累计" unit="t" color="#F43F5E" />
                       <DonutChart value={cumulativeStats.totalOutputAmount} maxValue={cumulativeStats.totalOutputAmount * 1.2} label="精矿出厂量累计" unit="t" color="#10B981" />
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
               </>
             ) : (
-              <Card>
+              <AnimatedCard delay={1.3}>
                 <CardContent className="text-center py-8">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="text-muted-foreground">暂无累计数据</p>
                   <p className="text-sm text-muted-foreground">请选择日期范围后点击刷新</p>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             )}
           </TabsContent>
 
           {/* 生产监控选项卡 */}
           <TabsContent value="monitoring" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={1.4000000000000001}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Activity className="h-5 w-5 mr-2" />
@@ -738,11 +772,11 @@ export function ProcessManagementPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatedListItem index={9} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* 设备状态监控 */}
-                  <div className="space-y-4">
+                  <AnimatedListItem index={3} className="space-y-4">
                     <h3 className="font-medium">设备状态</h3>
-                    <div className="space-y-3">
+                    <AnimatedListItem index={4} className="space-y-3">
                       <div className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center space-x-2">
                           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -768,9 +802,9 @@ export function ProcessManagementPage() {
                   </div>
 
                   {/* 关键指标 */}
-                  <div className="space-y-4">
+                  <AnimatedListItem index={5} className="space-y-4">
                     <h3 className="font-medium">关键指标</h3>
-                    <div className="space-y-3">
+                    <AnimatedListItem index={6} className="space-y-3">
                       <div className="p-3 border rounded-lg">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm text-muted-foreground">处理量</span>
@@ -796,9 +830,9 @@ export function ProcessManagementPage() {
                   </div>
 
                   {/* 报警信息 */}
-                  <div className="space-y-4">
+                  <AnimatedListItem index={7} className="space-y-4">
                     <h3 className="font-medium">报警信息</h3>
-                    <div className="space-y-3">
+                    <AnimatedListItem index={8} className="space-y-3">
                       <div className="p-3 border border-yellow-200 bg-yellow-50 rounded-lg">
                         <div className="flex items-center space-x-2">
                           <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
@@ -849,7 +883,7 @@ export function ProcessManagementPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
         </Tabs>
       </div>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { FlaskConical, Factory, Shield, BarChart3 } from "lucide-react";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
 export default function Home() {
   return (

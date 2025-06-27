@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-06-27T08:12:20.689Z",
+  "summary": {
+    "scanned": 21,
+    "integrated": 21,
+    "skipped": 0,
+    "errors": 0,
+    "successRate": "100.0"
+  },
+  "details": [
+    "🎯 集成: manager-page (性能优化已添加)",
+    "🎯 集成: boss-page (性能优化已添加)",
+    "🎯 集成: cosplay-page (性能优化已添加)",
+    "🎯 集成: data-table-center-page (性能优化已添加)",
+    "🎯 集成: ball-mill-workshop-page (性能优化已添加)",
+    "🎯 集成: filter-press-workshop-page (性能优化已添加)",
+    "🎯 集成: weighbridge-data-page (性能优化已添加)",
+    "🎯 集成: concentration-fineness-monitor-page (性能优化已添加)",
+    "🎯 集成: filter-press-data-details-page (性能优化已添加)",
+    "🎯 集成: incoming-data-details-new-page (性能优化已添加)",
+    "🎯 集成: outgoing-data-details-page (性能优化已添加)",
+    "🎯 集成: machine-running-details-page (性能优化已添加)",
+    "🎯 集成: process-management-page (性能优化已添加)",
+    "🎯 集成: production-control-page (性能优化已添加)",
+    "🎯 集成: production-quality-data-page (性能优化已添加)",
+    "🎯 集成: purchase-management-page (性能优化已添加)",
+    "🎯 集成: purchase-request-page (性能优化已添加)",
+    "🎯 集成: situation-management-page (性能优化已添加)",
+    "🎯 集成: situation-report-page (性能优化已添加)",
+    "🎯 集成: task-assignment-page (性能优化已添加)",
+    "🎯 集成: task-notification-page (性能优化已添加)"
+  ]
+}

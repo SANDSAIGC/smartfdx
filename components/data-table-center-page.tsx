@@ -45,7 +45,21 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { PaginatedTable, ColumnConfig } from "@/components/ui/paginated-table";
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface DataRecord {
   id?: string | number;
@@ -85,6 +99,10 @@ type SortDirection = 'asc' | 'desc';
 type SortField = string;
 
 export function DataTableCenterPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('data-table-center-page');
+  const { addTimer, addListener } = useMemoryLeak('data-table-center-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), 7),
@@ -433,7 +451,12 @@ export function DataTableCenterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="data-table-center-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -461,14 +484,14 @@ export function DataTableCenterPage() {
           className="space-y-8"
         >
           {/* 数据分类选择 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <AnimatedListItem index={0} className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {(Object.keys(dataCategories) as DataCategory[]).map((category) => (
               <motion.div
                 key={category}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Button
+                <AnimatedButton
                   variant={activeCategory === category ? "default" : "outline"}
                   onClick={() => handleCategoryChange(category)}
                   className="w-full h-16 flex flex-col items-center justify-center gap-2"
@@ -489,7 +512,7 @@ export function DataTableCenterPage() {
               className="flex flex-nowrap gap-2 pb-2"
             >
               {dataCategories[activeCategory].tables.map((table) => (
-                <Button
+                <AnimatedButton
                   key={table.id}
                   variant={activeTable === table.id ? "default" : "ghost"}
                   onClick={() => handleTableChange(table.id)}
@@ -502,10 +525,10 @@ export function DataTableCenterPage() {
           </div>
           
           {/* 日期范围选择 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <AnimatedListItem index={1} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Popover>
               <PopoverTrigger asChild>
-                <Button
+                <AnimatedButton
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
@@ -544,7 +567,7 @@ export function DataTableCenterPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Button 
+              <AnimatedButton 
                 onClick={handleExport}
                 disabled={loading || exporting}
                 className={cn(
@@ -576,9 +599,9 @@ export function DataTableCenterPage() {
           
           {/* 数据显示区域 */}
           {loading ? (
-            <div className="space-y-4">
+            <AnimatedListItem index={0} className="space-y-4">
               {Array(3).fill(0).map((_, index) => (
-                <Card key={index} className="animate-pulse">
+                <AnimatedCard delay={0} key={index} className="animate-pulse">
                   <CardContent className="p-4">
                     <div className="h-6 bg-muted rounded mb-3"></div>
                     <div className="h-4 bg-muted rounded mb-4"></div>
@@ -587,20 +610,20 @@ export function DataTableCenterPage() {
                       <div className="h-4 w-1/4 bg-muted rounded"></div>
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
               ))}
             </div>
           ) : data.length === 0 ? (
-            <Card>
+            <AnimatedCard delay={0.1}>
               <CardContent className="flex flex-col items-center py-12">
                 <List className="w-12 h-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">
                   没有找到符合条件的数据
                 </p>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           ) : (
-            <Card>
+            <AnimatedCard delay={0.2}>
               <ScrollArea className="w-full">
                 <div className="max-h-[60vh] overflow-y-auto">
                   <Table>
@@ -638,7 +661,7 @@ export function DataTableCenterPage() {
                   </Table>
                 </div>
               </ScrollArea>
-            </Card>
+            </AnimatedCard>
           )}
         </motion.div>
       </div>
@@ -660,7 +683,7 @@ export function DataTableCenterPage() {
           {selectedRecord && (
             <div className="flex-1 overflow-hidden">
               <ScrollArea className="h-full">
-                <div className="space-y-4">
+                <AnimatedListItem index={1} className="space-y-4">
                   {Object.entries(selectedRecord).map(([key, value]) => (
                     <div key={key} className="flex justify-between items-center py-3 border-b last:border-0">
                       <div className="text-sm font-medium text-muted-foreground flex-shrink-0 mr-4">
@@ -677,6 +700,7 @@ export function DataTableCenterPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

@@ -11,10 +11,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PaginatedTable, ColumnConfig } from "@/components/ui/paginated-table";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { 
+  UnifiedChart,
+  TrendLineChart,
+  ComparisonBarChart,
+  AreaChart as UnifiedAreaChart,
+  PieChart as UnifiedPieChart,
+  ComposedChart as UnifiedComposedChart,
+  createChartConfig,
+  formatChartData,
+  calculateTrend
+} from "@/components/ui/unified-chart";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 类型定义
 interface ConcentrationData {
   time: string;
@@ -35,6 +59,10 @@ interface MonitorRecord {
 }
 
 export function ConcentrationFinenessMonitorPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('concentration-fineness-monitor-page');
+  const { addTimer, addListener } = useMemoryLeak('concentration-fineness-monitor-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 状态管理
@@ -90,7 +118,15 @@ export function ConcentrationFinenessMonitorPage() {
       setLastUpdateTime(new Date());
     }, 30000); // 每30秒更新一次时间戳
 
-    return () => clearInterval(interval);
+    return (
+    <PerformanceWrapper
+      componentName="concentration-fineness-monitor-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      
+    </PerformanceWrapper>
+  ) => clearInterval(interval);
   }, []);
 
   // 获取状态颜色
@@ -125,7 +161,7 @@ export function ConcentrationFinenessMonitorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -159,8 +195,8 @@ export function ConcentrationFinenessMonitorPage() {
 
       <div className="container mx-auto px-6 py-8">
         {/* 状态卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+        <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <AnimatedCard delay={0}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">给料量</CardTitle>
               <Gauge className="h-4 w-4 text-muted-foreground" />
@@ -172,9 +208,9 @@ export function ConcentrationFinenessMonitorPage() {
                 +2.3% 较上小时
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          <Card>
+          <AnimatedCard delay={0.1}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">一号球磨浓度</CardTitle>
               <Beaker className="h-4 w-4 text-muted-foreground" />
@@ -185,9 +221,9 @@ export function ConcentrationFinenessMonitorPage() {
                 目标范围: 68-72%
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          <Card>
+          <AnimatedCard delay={0.2}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">二号球磨浓度</CardTitle>
               <Beaker className="h-4 w-4 text-muted-foreground" />
@@ -198,9 +234,9 @@ export function ConcentrationFinenessMonitorPage() {
                 目标范围: 72-76%
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          <Card>
+          <AnimatedCard delay={0.30000000000000004}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">二号球磨细度</CardTitle>
               <Settings className="h-4 w-4 text-muted-foreground" />
@@ -211,11 +247,11 @@ export function ConcentrationFinenessMonitorPage() {
                 目标范围: 85-90%
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
 
         {/* 图表区域 */}
-        <Card className="mb-8">
+        <AnimatedCard delay={0.4} className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center">
               <BarChart4 className="w-5 h-5 mr-2" />
@@ -307,10 +343,10 @@ export function ConcentrationFinenessMonitorPage() {
               数据更新时间: {format(lastUpdateTime, "yyyy-MM-dd HH:mm:ss")}
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 数据表格 */}
-        <Card>
+        <AnimatedCard delay={0.5}>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Terminal className="w-5 h-5 mr-2" />
@@ -318,36 +354,26 @@ export function ConcentrationFinenessMonitorPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>时间</TableHead>
-                  <TableHead>给料量(t/h)</TableHead>
-                  <TableHead>一号球磨浓度(%)</TableHead>
-                  <TableHead>二号球磨浓度(%)</TableHead>
-                  <TableHead>二号球磨细度(%)</TableHead>
-                  <TableHead>状态</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {todayRecords.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-medium">{record.time}</TableCell>
-                    <TableCell>{record.feedAmount}</TableCell>
-                    <TableCell>{record.firstMillDensity}</TableCell>
-                    <TableCell>{record.secondMillDensity}</TableCell>
-                    <TableCell>{record.secondMillFineness}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(record.status)}>
-                        {getStatusText(record.status)}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <PaginatedTable
+          data={record || []}
+          columns={columns || []}
+          title="浓细度监控"
+          description="浓度和细度实时监控"
+          searchable={true}
+          sortable={true}
+          pagination={{
+            page: 1,
+            pageSize: 20,
+            total: (record || []).length,
+            showSizeChanger: true,
+            showTotal: true,
+            pageSizeOptions: [10, 20, 50, 100]
+          }}
+          showActions={true}
+          emptyText="暂无数据"
+        />
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </div>
   );

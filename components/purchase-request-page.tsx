@@ -38,10 +38,24 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLoading, TableSkeletonLoading } from "@/components/loading-transition";
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FooterSignature } from "@/components/ui/footer-signature";
+import { useConfirmationDialog, CONFIRMATION_CONFIGS } from "@/components/ui/confirmation-dialog";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface PurchaseRequestItem {
   id: string;
@@ -76,6 +90,13 @@ interface PurchaseRequest {
 }
 
 export function PurchaseRequestPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('purchase-request-page');
+  const { addTimer, addListener } = useMemoryLeak('purchase-request-page');
+  const { metrics } = usePerformanceOptimization();
+  // 确认对话框
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
+
   const router = useRouter();
   
   // 状态管理
@@ -334,7 +355,12 @@ export function PurchaseRequestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="purchase-request-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -352,9 +378,9 @@ export function PurchaseRequestPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 欢迎面板 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-lg font-medium mb-2">新建采购申请</h2>
@@ -363,10 +389,10 @@ export function PurchaseRequestPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 基本信息 */}
-        <Card>
+        <AnimatedCard delay={0.1}>
           <CardHeader>
             <CardTitle className="flex items-center">
               <FileText className="h-5 w-5 mr-2" />
@@ -374,8 +400,8 @@ export function PurchaseRequestPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AnimatedListItem index={1} className="space-y-2">
                 <Label htmlFor="title">申请标题 *</Label>
                 <Input
                   id="title"
@@ -385,7 +411,7 @@ export function PurchaseRequestPage() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <AnimatedListItem index={2} className="space-y-2">
                 <Label htmlFor="department">申请部门 *</Label>
                 <Select
                   value={purchaseRequest.department}
@@ -402,7 +428,7 @@ export function PurchaseRequestPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              <AnimatedListItem index={3} className="space-y-2">
                 <Label htmlFor="requester">申请人 *</Label>
                 <Input
                   id="requester"
@@ -412,11 +438,11 @@ export function PurchaseRequestPage() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <AnimatedListItem index={4} className="space-y-2">
                 <Label>申请日期</Label>
                 <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                   <PopoverTrigger asChild>
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
@@ -444,11 +470,11 @@ export function PurchaseRequestPage() {
                 </Popover>
               </div>
 
-              <div className="space-y-2">
+              <AnimatedListItem index={5} className="space-y-2">
                 <Label>期望交付日期</Label>
                 <Popover open={isExpectedDatePickerOpen} onOpenChange={setIsExpectedDatePickerOpen}>
                   <PopoverTrigger asChild>
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
@@ -476,7 +502,7 @@ export function PurchaseRequestPage() {
                 </Popover>
               </div>
 
-              <div className="space-y-2">
+              <AnimatedListItem index={6} className="space-y-2">
                 <Label htmlFor="priority">优先级</Label>
                 <Select
                   value={purchaseRequest.priority}
@@ -497,7 +523,7 @@ export function PurchaseRequestPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <AnimatedListItem index={7} className="space-y-2">
               <Label htmlFor="budget-code">预算代码</Label>
               <Input
                 id="budget-code"
@@ -507,7 +533,7 @@ export function PurchaseRequestPage() {
               />
             </div>
 
-            <div className="space-y-2">
+            <AnimatedListItem index={8} className="space-y-2">
               <Label htmlFor="justification">采购理由 *</Label>
               <Textarea
                 id="justification"
@@ -518,10 +544,10 @@ export function PurchaseRequestPage() {
               />
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 物料项管理 */}
-        <Card>
+        <AnimatedCard delay={0.2}>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Package className="h-5 w-5 mr-2" />
@@ -532,8 +558,8 @@ export function PurchaseRequestPage() {
             {/* 添加物料项表单 */}
             <div className="p-4 border rounded-lg bg-muted/50">
               <h4 className="font-medium mb-4">添加物料项</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
+              <AnimatedListItem index={1} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <AnimatedListItem index={9} className="space-y-2">
                   <Label htmlFor="item-name">物料名称 *</Label>
                   <Input
                     id="item-name"
@@ -543,7 +569,7 @@ export function PurchaseRequestPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={10} className="space-y-2">
                   <Label htmlFor="item-category">物料分类 *</Label>
                   <Select
                     value={currentItem.category}
@@ -560,7 +586,7 @@ export function PurchaseRequestPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={11} className="space-y-2">
                   <Label htmlFor="item-specifications">规格型号</Label>
                   <Input
                     id="item-specifications"
@@ -570,7 +596,7 @@ export function PurchaseRequestPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={12} className="space-y-2">
                   <Label htmlFor="item-quantity">数量 *</Label>
                   <Input
                     id="item-quantity"
@@ -589,7 +615,7 @@ export function PurchaseRequestPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={13} className="space-y-2">
                   <Label htmlFor="item-unit">单位</Label>
                   <Select
                     value={currentItem.unit}
@@ -606,7 +632,7 @@ export function PurchaseRequestPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={14} className="space-y-2">
                   <Label htmlFor="item-price">预估单价</Label>
                   <Input
                     id="item-price"
@@ -626,7 +652,7 @@ export function PurchaseRequestPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={15} className="space-y-2">
                   <Label htmlFor="item-urgency">紧急程度</Label>
                   <Select
                     value={currentItem.urgency}
@@ -646,7 +672,7 @@ export function PurchaseRequestPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={16} className="space-y-2">
                   <Label htmlFor="item-supplier">建议供应商</Label>
                   <Input
                     id="item-supplier"
@@ -656,7 +682,7 @@ export function PurchaseRequestPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <AnimatedListItem index={17} className="space-y-2">
                   <Label>预估总价</Label>
                   <div className="flex items-center space-x-2">
                     <Calculator className="h-4 w-4 text-muted-foreground" />
@@ -667,7 +693,7 @@ export function PurchaseRequestPage() {
                 </div>
               </div>
 
-              <div className="mt-4 space-y-2">
+              <AnimatedListItem index={18} className="mt-4 space-y-2">
                 <Label htmlFor="item-remarks">备注</Label>
                 <Textarea
                   id="item-remarks"
@@ -679,7 +705,7 @@ export function PurchaseRequestPage() {
               </div>
 
               <div className="mt-4 flex justify-end">
-                <Button onClick={addItem} className="flex items-center space-x-2">
+                <AnimatedButton onClick={addItem} className="flex items-center space-x-2">
                   <Plus className="h-4 w-4" />
                   <span>添加物料</span>
                 </Button>
@@ -699,7 +725,7 @@ export function PurchaseRequestPage() {
               </div>
 
               {purchaseRequest.items.length > 0 ? (
-                <div className="space-y-3">
+                <AnimatedListItem index={19} className="space-y-3">
                   {purchaseRequest.items.map((item, index) => (
                     <div key={item.id} className="p-4 border rounded-lg">
                       <div className="flex justify-between items-start mb-2">
@@ -727,7 +753,7 @@ export function PurchaseRequestPage() {
                         </Button>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <AnimatedListItem index={2} className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <p className="text-muted-foreground">数量</p>
                           <p className="font-medium">{item.quantity} {item.unit}</p>
@@ -765,10 +791,10 @@ export function PurchaseRequestPage() {
               )}
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 申请摘要 */}
-        <Card>
+        <AnimatedCard delay={0.30000000000000004}>
           <CardHeader>
             <CardTitle className="flex items-center">
               <DollarSign className="h-5 w-5 mr-2" />
@@ -776,7 +802,7 @@ export function PurchaseRequestPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <AnimatedListItem index={3} className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-1">物料种类</p>
                 <p className="text-2xl font-bold text-blue-600">{purchaseRequest.items.length}</p>
@@ -798,15 +824,15 @@ export function PurchaseRequestPage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 底部操作栏 */}
-        <Card>
+        <AnimatedCard delay={0.4}>
           <CardContent className="pt-6">
             <div className="flex justify-center space-x-4">
-              <Button
+              <AnimatedButton
                 variant="outline"
-                onClick={saveDraft}
+                onClick={handleSaveWithConfirmation}
                 disabled={saving || submitting}
                 className="flex items-center space-x-2"
               >
@@ -818,8 +844,8 @@ export function PurchaseRequestPage() {
                 <span>保存草稿</span>
               </Button>
 
-              <Button
-                onClick={submitRequest}
+              <AnimatedButton
+                onClick={handleSubmitWithConfirmation}
                 disabled={saving || submitting || purchaseRequest.items.length === 0}
                 className="flex items-center space-x-2"
               >
@@ -838,8 +864,12 @@ export function PurchaseRequestPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
-    </div>
+
+      {/* 确认对话框 */}
+      <ConfirmationDialog />
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

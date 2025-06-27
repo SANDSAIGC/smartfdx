@@ -39,10 +39,23 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLoading, TableSkeletonLoading } from "@/components/loading-transition";
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
+import { FooterSignature } from "@/components/ui/footer-signature";
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
   LineChart,
   Line,
   XAxis,
@@ -106,6 +119,10 @@ interface PurchaseStats {
 }
 
 export function PurchaseManagementPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('purchase-management-page');
+  const { addTimer, addListener } = useMemoryLeak('purchase-management-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 状态管理
@@ -366,7 +383,12 @@ export function PurchaseManagementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="purchase-management-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -384,9 +406,9 @@ export function PurchaseManagementPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 欢迎面板 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-lg font-medium mb-2">采购管理系统</h2>
@@ -395,7 +417,7 @@ export function PurchaseManagementPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 选项卡 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -421,20 +443,12 @@ export function PurchaseManagementPage() {
           {/* 采购概览选项卡 */}
           <TabsContent value="overview" className="space-y-6">
             {/* 统计卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {loading ? (
-                Array.from({ length: 4 }).map((_, index) => (
-                  <Card key={index}>
-                    <CardContent className="pt-6">
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-8 w-3/4 mb-2" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </CardContent>
-                  </Card>
-                ))
+                <SkeletonLoading rows={4} />
               ) : purchaseStats ? (
                 <>
-                  <Card>
+                  <AnimatedCard delay={0.1}>
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium text-muted-foreground">
@@ -449,9 +463,9 @@ export function PurchaseManagementPage() {
                         累计采购订单
                       </p>
                     </CardContent>
-                  </Card>
+                  </AnimatedCard>
 
-                  <Card>
+                  <AnimatedCard delay={0.2}>
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium text-muted-foreground">
@@ -466,9 +480,9 @@ export function PurchaseManagementPage() {
                         需要审批处理
                       </p>
                     </CardContent>
-                  </Card>
+                  </AnimatedCard>
 
-                  <Card>
+                  <AnimatedCard delay={0.30000000000000004}>
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium text-muted-foreground">
@@ -483,9 +497,9 @@ export function PurchaseManagementPage() {
                         累计采购支出
                       </p>
                     </CardContent>
-                  </Card>
+                  </AnimatedCard>
 
-                  <Card>
+                  <AnimatedCard delay={0.4}>
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium text-muted-foreground">
@@ -500,14 +514,14 @@ export function PurchaseManagementPage() {
                         当月采购支出
                       </p>
                     </CardContent>
-                  </Card>
+                  </AnimatedCard>
                 </>
               ) : null}
             </div>
 
             {/* 采购分类统计 */}
             {purchaseStats && (
-              <Card>
+              <AnimatedCard delay={0.5}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Package className="h-5 w-5 mr-2" />
@@ -515,7 +529,7 @@ export function PurchaseManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={1} className="space-y-4">
                     {purchaseStats.top_categories.map((category, index) => (
                       <div key={category.name} className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -541,44 +555,44 @@ export function PurchaseManagementPage() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             )}
 
             {/* 快速操作 */}
-            <Card>
+            <AnimatedCard delay={0.6000000000000001}>
               <CardHeader>
                 <CardTitle>快速操作</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Button className="h-20 flex flex-col items-center justify-center space-y-2">
+                <AnimatedListItem index={1} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <AnimatedButton className="h-20 flex flex-col items-center justify-center space-y-2">
                     <Plus className="h-6 w-6" />
                     <span className="text-sm">新建采购申请</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+                  <AnimatedButton variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
                     <Search className="h-6 w-6" />
                     <span className="text-sm">查找订单</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+                  <AnimatedButton variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
                     <Building className="h-6 w-6" />
                     <span className="text-sm">供应商管理</span>
                   </Button>
-                  <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+                  <AnimatedButton variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
                     <Download className="h-6 w-6" />
                     <span className="text-sm">导出报表</span>
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 采购订单选项卡 */}
           <TabsContent value="orders" className="space-y-6">
             {/* 搜索和筛选 */}
-            <Card>
+            <AnimatedCard delay={0.7000000000000001}>
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
+                <AnimatedListItem index={2} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <AnimatedListItem index={2} className="space-y-2">
                     <Label>搜索订单</Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -591,7 +605,7 @@ export function PurchaseManagementPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={3} className="space-y-2">
                     <Label>订单状态</Label>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger>
@@ -608,7 +622,7 @@ export function PurchaseManagementPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={4} className="space-y-2">
                     <Label>优先级</Label>
                     <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                       <SelectTrigger>
@@ -624,7 +638,7 @@ export function PurchaseManagementPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <AnimatedListItem index={5} className="space-y-2">
                     <Label>操作</Label>
                     <div className="flex space-x-2">
                       <Button
@@ -647,30 +661,24 @@ export function PurchaseManagementPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* 订单列表 */}
-            <Card>
+            <AnimatedCard delay={0.8}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center">
                   <FileText className="h-5 w-5 mr-2" />
                   采购订单列表 ({filteredOrders.length})
                 </CardTitle>
-                <Button>
+                <AnimatedButton>
                   <Plus className="h-4 w-4 mr-2" />
                   新建订单
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <AnimatedListItem index={6} className="space-y-4">
                   {loading ? (
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <div key={index} className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                      </div>
-                    ))
+                    <SkeletonLoading rows={5} />
                   ) : filteredOrders.length > 0 ? (
                     filteredOrders.map((order) => (
                       <div key={order.id} className="p-4 border rounded-lg space-y-3">
@@ -702,7 +710,7 @@ export function PurchaseManagementPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <AnimatedListItem index={3} className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">预期交付</p>
                             <p className="font-medium">
@@ -759,32 +767,26 @@ export function PurchaseManagementPage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 供应商管理选项卡 */}
           <TabsContent value="suppliers" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={0.9}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center">
                   <Building className="h-5 w-5 mr-2" />
                   供应商列表
                 </CardTitle>
-                <Button>
+                <AnimatedButton>
                   <Plus className="h-4 w-4 mr-2" />
                   添加供应商
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <AnimatedListItem index={7} className="space-y-4">
                   {loading ? (
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <div key={index} className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                      </div>
-                    ))
+                    <SkeletonLoading rows={5} />
                   ) : suppliers.length > 0 ? (
                     suppliers.map((supplier) => (
                       <div key={supplier.id} className="p-4 border rounded-lg space-y-3">
@@ -844,13 +846,13 @@ export function PurchaseManagementPage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 采购分析选项卡 */}
           <TabsContent value="analytics" className="space-y-6">
             {/* 月度采购趋势 */}
-            <Card>
+            <AnimatedCard delay={1}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <TrendingUp className="h-5 w-5 mr-2" />
@@ -859,7 +861,7 @@ export function PurchaseManagementPage() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <Skeleton className="h-80 w-full" />
+                  <SkeletonLoading rows={1} className="h-80" />
                 ) : (
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={[
@@ -893,11 +895,11 @@ export function PurchaseManagementPage() {
                   </ResponsiveContainer>
                 )}
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* 供应商分析 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
+            <AnimatedListItem index={4} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <AnimatedCard delay={1.1}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Building className="h-5 w-5 mr-2" />
@@ -905,7 +907,7 @@ export function PurchaseManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <AnimatedListItem index={8} className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-sm">活跃供应商</span>
                       <div className="flex items-center space-x-2">
@@ -929,9 +931,9 @@ export function PurchaseManagementPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
 
-              <Card>
+              <AnimatedCard delay={1.2000000000000002}>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <AlertTriangle className="h-5 w-5 mr-2" />
@@ -939,7 +941,7 @@ export function PurchaseManagementPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <AnimatedListItem index={9} className="space-y-3">
                     <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
                       <Clock className="h-5 w-5 text-yellow-600" />
                       <div>
@@ -965,31 +967,32 @@ export function PurchaseManagementPage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
         </Tabs>
 
         {/* 底部操作栏 */}
-        <Card>
+        <AnimatedCard delay={1.3}>
           <CardContent className="pt-6">
             <div className="flex justify-center space-x-4">
-              <Button variant="outline" onClick={() => router.push('/purchase-request')}>
+              <AnimatedButton variant="outline" onClick={() => router.push('/purchase-request')}>
                 <Plus className="h-4 w-4 mr-2" />
                 新建采购申请
               </Button>
-              <Button variant="outline" onClick={() => router.push('/supplier-management')}>
+              <AnimatedButton variant="outline" onClick={() => router.push('/supplier-management')}>
                 <Building className="h-4 w-4 mr-2" />
                 供应商管理
               </Button>
-              <Button onClick={() => router.push('/purchase-analytics')}>
+              <AnimatedButton onClick={() => router.push('/purchase-analytics')}>
                 <TrendingUp className="h-4 w-4 mr-2" />
                 深度分析
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
-    </div>
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }

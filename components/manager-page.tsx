@@ -14,7 +14,21 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
+import { LoadingTransition, SkeletonLoading } from "@/components/loading-transition";
 // 类型定义
 interface ManagementModule {
   icon: React.ReactNode;
@@ -33,6 +47,10 @@ interface ProductionMetric {
 }
 
 export function ManagerPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('manager-page');
+  const { addTimer, addListener } = useMemoryLeak('manager-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 状态管理
@@ -142,11 +160,19 @@ export function ManagerPage() {
       });
     }, 5000);
 
-    return () => clearInterval(interval);
+    return (
+    <PerformanceWrapper
+      componentName="manager-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      
+    </PerformanceWrapper>
+  ) => clearInterval(interval);
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -180,9 +206,9 @@ export function ManagerPage() {
           </div>
 
           {/* 生产指标卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <AnimatedListItem index={0} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {productionMetrics.map((metric, index) => (
-              <Card key={index}>
+              <AnimatedCard delay={0} key={index}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
                   {metric.icon}
@@ -194,12 +220,12 @@ export function ManagerPage() {
                     {metric.change} 较昨日
                   </p>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             ))}
           </div>
 
           {/* 生产进度 */}
-          <Card>
+          <AnimatedCard delay={0.1}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Gauge className="w-5 h-5 mr-2 text-purple-500" />
@@ -207,7 +233,7 @@ export function ManagerPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <AnimatedListItem index={0} className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">当前进度</span>
                   <span className="text-2xl font-bold text-purple-600">
@@ -240,18 +266,18 @@ export function ManagerPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* 管理功能模块 */}
-          <Card>
+          <AnimatedCard delay={0.2}>
             <CardHeader>
               <CardTitle>管理功能</CardTitle>
               <p className="text-sm text-muted-foreground">点击选择管理模块</p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <AnimatedListItem index={1} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {managementModules.map((module, index) => (
-                  <Button
+                  <AnimatedButton
                     key={index}
                     variant="outline"
                     className="h-24 flex flex-col items-center justify-center space-y-2 relative"
@@ -272,10 +298,10 @@ export function ManagerPage() {
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           {/* 进销存管理 */}
-          <Card>
+          <AnimatedCard delay={0.30000000000000004}>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <FileText className="w-5 h-5 mr-2 text-primary" />
@@ -288,12 +314,12 @@ export function ManagerPage() {
                   <h3 className="text-lg font-medium">实时库存监控</h3>
                   <p className="text-sm text-muted-foreground">查看物料和产品库存状态</p>
                 </div>
-                <Button onClick={() => router.push("/inventory-management")}>
+                <AnimatedButton onClick={() => router.push("/inventory-management")}>
                   查看详情
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </motion.div>
       </div>
 

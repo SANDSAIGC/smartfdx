@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WorkspaceNavigation } from "@/components/workspace-navigation";
 import { Button } from "@/components/ui/button";
+import { PerformanceWrapper, LazyWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useDataPreload, useDebounce } from "@/hooks/use-performance-optimization";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PaginatedTable, ColumnConfig } from "@/components/ui/paginated-table";
 import {
   Dialog,
   DialogContent,
@@ -31,19 +34,28 @@ import {
 } from "lucide-react";
 import { usePageAuth } from "@/lib/hooks/use-auto-login";
 import { SampleData, DataSource } from "@/lib/mock-data-generator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLoading, TableSkeletonLoading } from "@/components/loading-transition";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
 // 懒加载组件
 const WelcomePanel = lazy(() => import("@/components/welcome-panel").then(module => ({ default: module.WelcomePanel })));
-const DateRangePicker = lazy(() => import("@/components/date-range-picker").then(module => ({ default: module.DateRangePicker })));
+const LabDateSelector = lazy(() => import("@/components/lab-date-selector").then(module => ({ default: module.LabDateSelector })));
 const DataComparisonSection = lazy(() => import("@/components/data-comparison-section").then(module => ({ default: module.DataComparisonSection })));
 
 // 接口定义移到了 mock-data-generator.ts 中
 
-interface DateRange {
-  from: Date;
-  to: Date;
-}
+// 导入Lab日期选择器的类型
+import type { LabDateRange } from "@/components/lab-date-selector";
 
 // 数据转换函数：将Supabase数据转换为组件期望的格式
 const transformSupabaseData = (supabaseData: any[], dataSource: DataSource): SampleData[] => {
@@ -116,6 +128,9 @@ const transformSupabaseData = (supabaseData: any[], dataSource: DataSource): Sam
 };
 
 export function LabPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('LabPage');
+
   // 路由管理
   const router = useRouter();
 
@@ -131,7 +146,10 @@ export function LabPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<SampleData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange>(() => {
+
+  // 防抖优化的数据源选择
+  const debouncedDataSource = useDebounce(selectedDataSource, 300);
+  const [dateRange, setDateRange] = useState<LabDateRange>(() => {
     // 开始日期：2025-04-26
     const startDate = new Date('2025-04-26');
     // 结束日期：当前日期减去2天
@@ -450,26 +468,21 @@ export function LabPage() {
   // 如果是初始加载，显示完整的骨架屏
   if (isInitialLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-8">
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-96" />
+      <AnimatedListItem index={0} className="container mx-auto p-6 space-y-8">
+        <SkeletonLoading rows={2} className="mb-8" />
+        <AnimatedListItem index={0} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <SkeletonLoading rows={1} />
+          <SkeletonLoading rows={1} />
+          <SkeletonLoading rows={1} />
+          <SkeletonLoading rows={1} />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full" />
-          ))}
-        </div>
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
+        <SkeletonLoading rows={3} />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <AnimatedListItem index={1} className="container mx-auto p-6 space-y-8">
       {/* 页面头部 */}
       <div className="relative">
         {/* 导航菜单 - 左上角 */}
@@ -500,7 +513,7 @@ export function LabPage() {
       </Suspense>
 
       {/* 专项作业区域 */}
-      <Card>
+      <AnimatedCard delay={0}>
         <CardHeader>
           <CardTitle>专项作业区</CardTitle>
           <CardDescription>
@@ -508,14 +521,14 @@ export function LabPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <AnimatedListItem index={1} className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {workAreas.map((area) => {
               const IconComponent = area.icon;
 
               if (area.isNavigationButton) {
                 // 渲染为跳转按钮
                 return (
-                  <Button
+                  <AnimatedButton
                     key={area.dataSource}
                     variant="outline"
                     className="h-auto p-3 sm:p-4 flex flex-col items-center space-y-1 sm:space-y-2 hover:bg-primary/5 hover:border-primary"
@@ -541,13 +554,13 @@ export function LabPage() {
                     onClick={() => handleWorkAreaClick(area)}
                   >
                     <CardContent className="p-3 sm:p-4">
-                      <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2">
+                      <AnimatedListItem index={2} className="flex flex-col items-center text-center space-y-1 sm:space-y-2">
                         <IconComponent className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                         <h3 className="font-semibold text-xs sm:text-sm">{area.label}</h3>
                         <p className="text-xs text-muted-foreground hidden sm:block">{area.description}</p>
                       </div>
                     </CardContent>
-                  </Card>
+                  </AnimatedCard>
                 );
               }
             })}
@@ -556,7 +569,7 @@ export function LabPage() {
       </Card>
 
       {/* 化验数据查询区域 */}
-      <Card>
+      <AnimatedCard delay={0.1}>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex-1">
             <CardTitle className="text-lg sm:text-xl">化验数据查询</CardTitle>
@@ -578,17 +591,23 @@ export function LabPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* 日期范围选择器 - 懒加载 */}
-          <Suspense fallback={<div className="h-24 bg-muted animate-pulse rounded-lg mb-4" />}>
-            <DateRangePicker
+          {/* Lab专用日期选择器 - 懒加载 */}
+          <Suspense fallback={<div className="h-32 bg-muted animate-pulse rounded-lg mb-4" />}>
+            <LabDateSelector
               dateRange={dateRange}
-              setDateRange={setDateRange}
+              onDateRangeChange={setDateRange}
+              onRefresh={fetchData}
+              isLoading={isLoading}
+              showPresets={true}
+              showRefreshButton={true}
+              showStatistics={true}
+              compact={false}
               className="mb-4"
             />
           </Suspense>
 
           {/* 数据源切换按钮 */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-4">
+          <AnimatedListItem index={2} className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-4">
             {(['shift_samples', 'filter_samples', 'incoming_samples', 'outgoing_sample'] as const).map((source) => (
               <Button
                 key={source}
@@ -605,15 +624,7 @@ export function LabPage() {
           {/* 数据表格 */}
           <div className="relative overflow-hidden">
             {isLoading ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex space-x-4">
-                    {[...Array(columns.length)].map((_, j) => (
-                      <Skeleton key={j} className="h-12 flex-1" />
-                    ))}
-                  </div>
-                ))}
-              </div>
+              <TableSkeletonLoading rows={5} cols={columns.length} />
             ) : tableData.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                 <Search className="h-12 w-12 mb-4 opacity-50" />
@@ -623,37 +634,31 @@ export function LabPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {columns.map((column) => (
-                        <TableHead key={column.key}>
-                          {column.header}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tableData.map((item) => (
-                      <TableRow
-                        key={item.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleRowClick(item)}
-                      >
-                        {columns.map((column) => (
-                          <TableCell key={`${item.id}-${column.key}`}>
-                            {column.render ? column.render(item) : String(item[column.key] || '-')}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <PaginatedTable
+          data={tableData}
+          columns={columns}
+          title={`${dataSourceLabel[selectedDataSource]} 数据`}
+          description="实验室数据展示"
+          searchable={true}
+          sortable={true}
+          pagination={{
+            page: 1,
+            pageSize: 15,
+            total: tableData.length,
+            showSizeChanger: true,
+            showTotal: true,
+            pageSizeOptions: [10, 15, 30, 50]
+          }}
+          onRowClick={handleRowClick}
+          onRefresh={fetchData}
+          showActions={true}
+          emptyText={`暂无 ${dataSourceLabel[selectedDataSource]} 数据`}
+        />
               </div>
             )}
           </div>
         </CardContent>
-      </Card>
+      </AnimatedCard>
 
       {/* 进出厂数据对比 - 懒加载 */}
       <Suspense fallback={<div className="h-96 bg-muted animate-pulse rounded-lg" />}>
@@ -675,7 +680,7 @@ export function LabPage() {
 
             <div className="mt-4">
               {isEditing ? (
-                <div className="space-y-4">
+                <AnimatedListItem index={3} className="space-y-4">
                   {editableFields.map((field) => (
                     <div key={field.key} className="space-y-2">
                       <Label htmlFor={field.key} className="text-sm font-medium">
@@ -694,7 +699,7 @@ export function LabPage() {
                   ))}
 
                   <div className="flex gap-2 pt-4">
-                    <Button
+                    <AnimatedButton
                       onClick={handleSaveEdit}
                       disabled={isLoading}
                       className="flex-1"
@@ -702,7 +707,7 @@ export function LabPage() {
                       <Save className="h-4 w-4 mr-1" />
                       {isLoading ? '保存中...' : '保存'}
                     </Button>
-                    <Button
+                    <AnimatedButton
                       variant="outline"
                       onClick={() => {
                         setIsEditing(false);
@@ -754,7 +759,7 @@ export function LabPage() {
                   </Table>
 
                   <div className="flex gap-2 pt-4">
-                    <Button
+                    <AnimatedButton
                       onClick={() => setIsEditing(true)}
                       className="flex-1"
                     >

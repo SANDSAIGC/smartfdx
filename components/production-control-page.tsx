@@ -35,8 +35,21 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLoading, TableSkeletonLoading } from "@/components/loading-transition";
+import { FooterSignature } from "@/components/ui/footer-signature";
 
+import { 
+  AnimatedPage, 
+  AnimatedCard, 
+  AnimatedContainer, 
+  AnimatedButton,
+  AnimatedListItem,
+  AnimatedCounter,
+  AnimatedProgress,
+  AnimatedBadge
+} from "@/components/ui/animated-components";
+import { PerformanceWrapper, withPerformanceOptimization } from "@/components/performance-wrapper";
+import { useRenderPerformance, useMemoryLeak, usePerformanceOptimization } from "@/hooks/use-performance-optimization";
 // 定义数据类型
 interface MachineOperationRecord {
   id: string;
@@ -59,6 +72,10 @@ interface OreTonnageRecord {
 }
 
 export function ProductionControlPage() {
+  // 性能监控
+  const { renderCount } = useRenderPerformance('production-control-page');
+  const { addTimer, addListener } = useMemoryLeak('production-control-page');
+  const { metrics } = usePerformanceOptimization();
   const router = useRouter();
   
   // 通用状态
@@ -287,7 +304,12 @@ export function ProductionControlPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PerformanceWrapper
+      componentName="production-control-page"
+      enableMonitoring={process.env.NODE_ENV === 'development'}
+      enableMemoryTracking={true}
+    >
+      <AnimatedPage className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
       <div className="flex justify-between items-center p-6 border-b">
         <div className="flex items-center space-x-4">
@@ -305,9 +327,9 @@ export function ProductionControlPage() {
         <ThemeToggle />
       </div>
 
-      <div className="p-6 space-y-6">
+      <AnimatedListItem index={0} className="p-6 space-y-6">
         {/* 欢迎面板 */}
-        <Card>
+        <AnimatedCard delay={0}>
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-lg font-medium mb-2">生产控制工作台</h2>
@@ -316,7 +338,7 @@ export function ProductionControlPage() {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* 选项卡 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -333,7 +355,7 @@ export function ProductionControlPage() {
 
           {/* 设备运行记录选项卡 */}
           <TabsContent value="machine-operation" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={0.1}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Settings className="h-5 w-5 mr-2" />
@@ -342,14 +364,14 @@ export function ProductionControlPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* 时间选择 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={1} className="space-y-2">
                   <Label className="flex items-center">
                     <Clock className="h-4 w-4 mr-2" />
                     选择时间
                   </Label>
                   <Popover open={isDateTimePickerOpen} onOpenChange={setIsDateTimePickerOpen}>
                     <PopoverTrigger asChild>
-                      <Button
+                      <AnimatedButton
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
@@ -400,13 +422,13 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 运行操作选择 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={2} className="space-y-2">
                   <Label className="flex items-center">
                     <Power className="h-4 w-4 mr-2" />
                     运行操作
                   </Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Button
+                  <AnimatedListItem index={0} className="grid grid-cols-2 gap-4">
+                    <AnimatedButton
                       variant={operationAction === '开机' ? 'default' : 'outline'}
                       className={cn(
                         "h-12 flex items-center justify-center space-x-2",
@@ -417,7 +439,7 @@ export function ProductionControlPage() {
                       <Power className="h-4 w-4" />
                       <span>开机</span>
                     </Button>
-                    <Button
+                    <AnimatedButton
                       variant={operationAction === '停机' ? 'default' : 'outline'}
                       className={cn(
                         "h-12 flex items-center justify-center space-x-2",
@@ -432,7 +454,7 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 设备状态显示 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={3} className="space-y-2">
                   <Label className="flex items-center">
                     <Settings className="h-4 w-4 mr-2" />
                     设备状态
@@ -448,7 +470,7 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 备注输入 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={4} className="space-y-2">
                   <Label htmlFor="operation-remarks" className="flex items-center">
                     <FileEdit className="h-4 w-4 mr-2" />
                     备注（选填）
@@ -463,7 +485,7 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 提交按钮 */}
-                <Button
+                <AnimatedButton
                   onClick={handleSubmitMachineOperation}
                   disabled={isSubmittingOperation}
                   className="w-full"
@@ -479,10 +501,10 @@ export function ProductionControlPage() {
                   )}
                 </Button>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* 设备运行记录历史 */}
-            <Card>
+            <AnimatedCard delay={0.2}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center">
                   <AreaChart className="h-5 w-5 mr-2" />
@@ -502,14 +524,9 @@ export function ProductionControlPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <AnimatedListItem index={5} className="space-y-4">
                   {loading ? (
-                    Array.from({ length: 3 }).map((_, index) => (
-                      <div key={index} className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                      </div>
-                    ))
+                    <SkeletonLoading rows={3} />
                   ) : machineOperationRecords.length > 0 ? (
                     machineOperationRecords.map((record) => (
                       <div key={record.id} className="p-4 border rounded-lg space-y-2">
@@ -554,12 +571,12 @@ export function ProductionControlPage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           {/* 进料量记录选项卡 */}
           <TabsContent value="ore-tonnage" className="space-y-6">
-            <Card>
+            <AnimatedCard delay={0.30000000000000004}>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Scale className="h-5 w-5 mr-2" />
@@ -568,14 +585,14 @@ export function ProductionControlPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* 日期选择 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={6} className="space-y-2">
                   <Label className="flex items-center">
                     <CalendarCheck className="h-4 w-4 mr-2" />
                     选择日期
                   </Label>
                   <Popover open={isTonnageDatePickerOpen} onOpenChange={setIsTonnageDatePickerOpen}>
                     <PopoverTrigger asChild>
-                      <Button
+                      <AnimatedButton
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
@@ -603,7 +620,7 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 班次选择 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={7} className="space-y-2">
                   <Label className="flex items-center">
                     <Clock className="h-4 w-4 mr-2" />
                     班次
@@ -625,7 +642,7 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 起始读数 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={8} className="space-y-2">
                   <Label htmlFor="reading-start" className="flex items-center">
                     <Scale className="h-4 w-4 mr-2" />
                     起始读数
@@ -641,7 +658,7 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 结束读数 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={9} className="space-y-2">
                   <Label htmlFor="reading-end" className="flex items-center">
                     <Scale className="h-4 w-4 mr-2" />
                     结束读数
@@ -657,7 +674,7 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 吨位结果 */}
-                <div className="space-y-2">
+                <AnimatedListItem index={10} className="space-y-2">
                   <Label htmlFor="tonnage-result" className="flex items-center">
                     <Factory className="h-4 w-4 mr-2" />
                     吨位结果
@@ -675,7 +692,7 @@ export function ProductionControlPage() {
                 </div>
 
                 {/* 提交按钮 */}
-                <Button
+                <AnimatedButton
                   onClick={handleSubmitOreTonnage}
                   disabled={isSubmittingTonnage}
                   className="w-full"
@@ -691,10 +708,10 @@ export function ProductionControlPage() {
                   )}
                 </Button>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* 进料量记录历史 */}
-            <Card>
+            <AnimatedCard delay={0.4}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center">
                   <AreaChart className="h-5 w-5 mr-2" />
@@ -714,14 +731,9 @@ export function ProductionControlPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <AnimatedListItem index={11} className="space-y-4">
                   {loading ? (
-                    Array.from({ length: 3 }).map((_, index) => (
-                      <div key={index} className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                      </div>
-                    ))
+                    <SkeletonLoading rows={3} />
                   ) : oreTonnageRecords.length > 0 ? (
                     oreTonnageRecords.map((record) => (
                       <div key={record.id} className="p-4 border rounded-lg">
@@ -755,14 +767,14 @@ export function ProductionControlPage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
         </Tabs>
 
         {/* 底部导航 */}
-        <Card>
+        <AnimatedCard delay={0.5}>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-4 gap-4">
+            <AnimatedListItem index={1} className="grid grid-cols-4 gap-4">
               <Button
                 variant="ghost"
                 className="flex flex-col items-center space-y-2 h-auto py-4"
@@ -797,8 +809,9 @@ export function ProductionControlPage() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
-    </div>
+    </AnimatedPage>
+    </PerformanceWrapper>
   );
 }
