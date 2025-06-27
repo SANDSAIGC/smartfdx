@@ -14,13 +14,10 @@ export const config = {
      * - favicon.ico (favicon file)
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
      * - api routes (for testing purposes)
-     * - test-kong (Kong测试页面，无需认证)
-     * - demo (Demo页面，无需认证)
      * - lab (实验室页面，使用简化身份验证)
-     * - test-login, debug-login (测试页面)
-     * - lab-performance (性能监控页面)
+     * - shift-sample, filter-sample, incoming-sample, outgoing-sample (样本记录页面，使用简化身份验证)
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|api|test-kong|demo|lab|test-login|debug-login|lab-performance|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api|lab|shift-sample|filter-sample|incoming-sample|outgoing-sample|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

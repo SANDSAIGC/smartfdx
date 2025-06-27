@@ -103,9 +103,9 @@ export function LoggedInInterface({ showActions = true }: LoggedInInterfaceProps
       }
     }
 
-    // 默认重定向到demo页面
-    console.log('🔄 [已登录界面] 使用默认重定向到 /demo');
-    router.push('/demo');
+    // 默认重定向到lab页面
+    console.log('🔄 [已登录界面] 使用默认重定向到 /lab');
+    router.push('/lab');
   };
 
 

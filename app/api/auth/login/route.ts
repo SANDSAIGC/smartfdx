@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     console.log('密码验证成功');
 
     // 3. 获取用户的工作页面路由
-    let redirectUrl = '/demo'; // 默认页面
+    let redirectUrl = '/lab'; // 默认页面
 
     if (userProfile.工作页面) {
       const workPageQueryUrl = `${supabaseUrl}/rest/v1/工作页面?页面名称=eq.${encodeURIComponent(userProfile.工作页面)}&select=页面路由`;

@@ -50,11 +50,11 @@ export function LoginPageContent() {
 
           // 如果没有工作页面或查询失败，重定向到默认页面
           console.log('🔄 [登录页面] 重定向到默认页面');
-          router.replace('/demo');
+          router.replace('/lab');
 
         } catch (error) {
           console.error('❌ [登录页面] 重定向异常:', error);
-          router.replace('/demo');
+          router.replace('/lab');
         }
       };
 

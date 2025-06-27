@@ -30,10 +30,8 @@ import {
   RefreshCw
 } from "lucide-react";
 import { usePageAuth } from "@/lib/hooks/use-auto-login";
-import { usePerformanceMonitor } from "@/lib/performance-monitor";
 import { SampleData, DataSource } from "@/lib/mock-data-generator";
-import { LabSkeleton, TableSkeleton, ProgressiveLoad } from "@/components/lab-skeleton";
-import { DataLoading, RouteLoading } from "@/components/loading-transition";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // 懒加载组件
 const WelcomePanel = lazy(() => import("@/components/welcome-panel").then(module => ({ default: module.WelcomePanel })));
@@ -124,9 +122,6 @@ export function LabPage() {
   // 认证状态检查
   const { isLoading: authLoading } = usePageAuth(false); // lab页面不强制要求登录
 
-  // 性能监控
-  const { start, end, measure } = usePerformanceMonitor();
-
   // 状态管理
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -195,42 +190,38 @@ export function LabPage() {
 
   // 优化的数据获取函数 - 使用真实Supabase数据
   const fetchData = useCallback(async () => {
-    await measure('data-fetch', async () => {
-      setIsLoading(true);
-      try {
-        // 格式化日期为YYYY-MM-DD格式
-        const startDate = dateRange.from.toISOString().split('T')[0];
-        const endDate = dateRange.to.toISOString().split('T')[0];
+    setIsLoading(true);
+    try {
+      // 格式化日期为YYYY-MM-DD格式
+      const startDate = dateRange.from.toISOString().split('T')[0];
+      const endDate = dateRange.to.toISOString().split('T')[0];
 
-        // 调用新的实验室数据API
-        const response = await fetch(`/api/lab-data?sampleType=${selectedDataSource}&startDate=${startDate}&endDate=${endDate}&limit=50`);
-        const result = await response.json();
+      // 调用新的实验室数据API
+      const response = await fetch(`/api/lab-data?sampleType=${selectedDataSource}&startDate=${startDate}&endDate=${endDate}&limit=50`);
+      const result = await response.json();
 
-        if (result.success) {
-          // 转换Supabase数据格式为组件期望的格式
-          const transformedData = transformSupabaseData(result.data, selectedDataSource);
-          setTableData(transformedData);
-        } else {
-          console.error('API查询失败:', result.error || 'Unknown error');
-          // 不再回退到模拟数据，直接设置为空数组
-          setTableData([]);
-        }
-      } catch (error) {
-        console.error('获取数据失败:', error);
+      if (result.success) {
+        // 转换Supabase数据格式为组件期望的格式
+        const transformedData = transformSupabaseData(result.data, selectedDataSource);
+        setTableData(transformedData);
+      } else {
+        console.error('API查询失败:', result.error || 'Unknown error');
         // 不再回退到模拟数据，直接设置为空数组
         setTableData([]);
-      } finally {
-        setIsLoading(false);
       }
-    }, { dataSource: selectedDataSource, dateRange: `${dateRange.from.toISOString()} - ${dateRange.to.toISOString()}` });
-  }, [selectedDataSource, dateRange, measure]);
+    } catch (error) {
+      console.error('获取数据失败:', error);
+      // 不再回退到模拟数据，直接设置为空数组
+      setTableData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedDataSource, dateRange]);
 
   // 优化的数据源切换
   const handleDataSourceChange = useCallback(async (source: DataSource) => {
-    await measure('data-switch', async () => {
-      setSelectedDataSource(source);
-    }, { from: selectedDataSource, to: source });
-  }, [selectedDataSource, measure]);
+    setSelectedDataSource(source);
+  }, [selectedDataSource]);
 
   // 处理专项作业区点击
   const handleWorkAreaClick = useCallback((area: typeof workAreas[0]) => {
@@ -257,13 +248,11 @@ export function LabPage() {
 
   // 优化的行点击处理
   const handleRowClick = useCallback((item: SampleData) => {
-    start('dialog-open', { itemId: item.id });
     setSelectedItem(item);
     setEditingItem({ ...item });
     setIsEditing(false);
     setDialogOpen(true);
-    end('dialog-open');
-  }, [start, end]);
+  }, []);
 
   // 优化的表格列配置（使用 useMemo）
   const columns = useMemo(() => {
@@ -432,7 +421,6 @@ export function LabPage() {
   // 页面初始化
   useEffect(() => {
     const initializePage = async () => {
-      start('page-load');
       setIsInitialLoading(true);
 
       try {
@@ -442,7 +430,6 @@ export function LabPage() {
         console.error('页面初始化失败:', error);
       } finally {
         setIsInitialLoading(false);
-        end('page-load');
       }
     };
 
@@ -462,7 +449,23 @@ export function LabPage() {
 
   // 如果是初始加载，显示完整的骨架屏
   if (isInitialLoading) {
-    return <LabSkeleton />;
+    return (
+      <div className="container mx-auto p-6 space-y-8">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -599,52 +602,56 @@ export function LabPage() {
             ))}
           </div>
 
-          {/* 数据表格 - 渐进式加载 */}
-          <ProgressiveLoad
-            isLoading={isLoading}
-            skeleton={<TableSkeleton rows={5} columns={columns.length} />}
-            delay={100}
-          >
-            <div className="relative overflow-hidden">
-              {tableData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-                  <Search className="h-12 w-12 mb-4 opacity-50" />
-                  <p className="text-lg font-medium">暂无 {dataSourceLabel[selectedDataSource]} 数据</p>
-                  <p className="text-sm mt-2">所选日期范围内没有找到相关记录</p>
-                  <p className="text-sm">请尝试调整日期范围或联系管理员</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
+          {/* 数据表格 */}
+          <div className="relative overflow-hidden">
+            {isLoading ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex space-x-4">
+                    {[...Array(columns.length)].map((_, j) => (
+                      <Skeleton key={j} className="h-12 flex-1" />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : tableData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                <Search className="h-12 w-12 mb-4 opacity-50" />
+                <p className="text-lg font-medium">暂无 {dataSourceLabel[selectedDataSource]} 数据</p>
+                <p className="text-sm mt-2">所选日期范围内没有找到相关记录</p>
+                <p className="text-sm">请尝试调整日期范围或联系管理员</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {columns.map((column) => (
+                        <TableHead key={column.key}>
+                          {column.header}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tableData.map((item) => (
+                      <TableRow
+                        key={item.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleRowClick(item)}
+                      >
                         {columns.map((column) => (
-                          <TableHead key={column.key}>
-                            {column.header}
-                          </TableHead>
+                          <TableCell key={`${item.id}-${column.key}`}>
+                            {column.render ? column.render(item) : String(item[column.key] || '-')}
+                          </TableCell>
                         ))}
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {tableData.map((item) => (
-                        <TableRow
-                          key={item.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleRowClick(item)}
-                        >
-                          {columns.map((column) => (
-                            <TableCell key={`${item.id}-${column.key}`}>
-                              {column.render ? column.render(item) : String(item[column.key] || '-')}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </div>
-          </ProgressiveLoad>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
